@@ -78,7 +78,7 @@
 </style>
 
 <div>
-  <button class="logs" on:click={toggle}>
+  <button class="logs" on:click={() => { console.log('LogDisplay: toggle clicked'); toggle(); }}>
     {#if show}
       <img src="/open-log.png" alt="Hide Logs" />
     {:else}

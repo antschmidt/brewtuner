@@ -39,11 +39,11 @@
 </style>
 
 {#if $user}
-  <nav>
+  <slot />
+    <nav>
     <div>Welcome {$user.email}</div>
     <button on:click={logout}>Logout</button>
   </nav>
-  <slot />
 {:else}
   <div class="login-container">
     <h2>Login</h2>

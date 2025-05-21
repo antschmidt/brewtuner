@@ -93,7 +93,7 @@ export async function upsertProfile(
   tamped: boolean = false
 ): Promise<Profile> {
   const mutation = `
-    mutation ($bean_id: uuid!, $grinder_id: uuid!, $brew_method_id: uuid!, $profile_setting: float8!, $grams: Int!, $tamped: Boolean!) {
+    mutation ($bean_id: uuid!, $grinder_id: uuid!, $brew_method_id: uuid!, $profile_setting: numeric!, $grams: numeric!, $tamped: Boolean!) {
       insert_profiles_one(
         object: {
           bean_id: $bean_id,
@@ -123,7 +123,7 @@ export async function upsertProfile(
 // log a grind attempt
 export async function logGrind(profileId: string, setting: number, outcome: string, adjustment: 'coarser' | 'finer' | 'good', tamped: boolean = false, grams: number) {
     const mutation = `
-    mutation ($profile_id: uuid!, $setting: float8!, $outcome: String!, $adjustment: String!, $tamped: Boolean!, $grams: Int!) {
+    mutation ($profile_id: uuid!, $setting: numeric!, $outcome: String!, $adjustment: String!, $tamped: Boolean!, $grams: numeric!) {
       insert_grind_logs_one(
         object: {
           profile_id: $profile_id,

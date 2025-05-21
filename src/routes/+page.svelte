@@ -17,6 +17,7 @@
 	} from '$lib/graphQLClient';
 	import type { GrindLog } from '$lib/graphQLClient';
 	import LogDisplay from '$lib/LogDisplay.svelte';
+	import { fly, scale } from 'svelte/transition';
 
 	interface Roaster {
 		id: string;
@@ -43,7 +44,8 @@
 	const beanSearch = writable<string>('');
 	const loading = writable(false);
 	const selectedBeanId = writable<string>('');
-	const showBeanSelector = writable(true);
+	const showBeanSelector = writable(false);
+	let isRestoring = true;
 	const showGrinderSelector = writable(true);
 	const showMethodSelector = writable(true);
 	const grinders = writable<Grinder[]>([]);
@@ -57,11 +59,18 @@
 	let adjustment: 'coarser' | 'good' | 'finer' = 'good';
 	let grams = 0;
 	let tamped = false;
-	let currentProfile: { id: string; profile_setting: number; grams: number; tamped: boolean } | null = null;
+	let currentProfile: {
+		id: string;
+		profile_setting: number;
+		grams: number;
+		tamped: boolean;
+	} | null = null;
 	let loadingProfile = false;
 	let logs: GrindLog[] = [];
-	let showLogs = false;
-	let loadingLogs = false;
+	import { writable as writableLocal } from 'svelte/store';
+	const showLogs = writableLocal(false);
+	const loadingLogs = writableLocal(false);
+	let showLogsLocal = false;
 	const showRoasterSelector = writable(false);
 	let newRoaster = '';
 
@@ -90,7 +99,7 @@
 					selectedRoaster.set(roaster);
 					const beansList = await getBeans(roaster);
 					beans.set(beansList);
-					showBeanSelector.set(false);
+					if (bean) showBeanSelector.set(false);
 					selectedBeanId.set(bean);
 				}
 				if (grinder) selectedGrinder.set(grinder);
@@ -102,13 +111,18 @@
 				console.warn('Failed to restore last selections', e);
 			}
 		}
+		// default to showing bean selector if no bean was restored
+		if (!get(selectedBeanId)) {
+			showBeanSelector.set(true);
+		}
+		isRestoring = false;
 	});
 
 	selectedRoaster.subscribe(async (id) => {
 		// clear any previous bean selection and search when roaster changes
 		selectedBeanId.set('');
 		beanSearch.set('');
-		showBeanSelector.set(true);
+		if (!isRestoring) showBeanSelector.set(true);
 
 		if (!id) return beans.set([]);
 		loading.set(true);
@@ -138,19 +152,39 @@
 
 	async function submitLog() {
 		const beanId = get(selectedBeanId);
-		// ensure profile exists or is updated with setting
-		const profile = await upsertProfile(
-			beanId,
-			get(selectedGrinder),
-			get(selectedMethod),
-			setting,
-			grams,
-			tamped
-		);
-        console.log('submitLog:', profile);
-		// store last profile for display
-		lastProfile = { setting: profile.profile_setting, grams: profile.grams, tamped: profile.tamped };
-		await logGrind(profile.id, setting, outcomeText, adjustment, tamped, grams);
+		let profileId: string;
+		// only update the stored profile when marked 'good'
+		if (adjustment === 'good') {
+			const profile = await upsertProfile(
+				beanId,
+				get(selectedGrinder),
+				get(selectedMethod),
+				setting,
+				grams,
+				tamped
+			);
+			console.log('submitLog (profile upsert):', profile);
+			lastProfile = {
+				setting: profile.profile_setting,
+				grams: profile.grams,
+				tamped: profile.tamped
+			};
+			profileId = profile.id;
+		} else if (currentProfile?.id) {
+			profileId = currentProfile.id;
+		} else {
+			console.warn('No existing profile to log against');
+			return;
+		}
+		// always log the grind attempt
+		await logGrind(profileId, setting, outcomeText, adjustment, tamped, grams);
+
+		// Immediately refresh and show logs
+		showLogs.set(true);
+		loadingLogs.set(true);
+		logs = await getGrindLogs(profileId);
+		loadingLogs.set(false);
+
 		// save last selections for next session
 		localStorage.setItem(
 			'lastSelection',
@@ -253,11 +287,12 @@
 
 	/** Toggle display of grind logs and fetch if needed */
 	async function toggleLogs() {
-		showLogs = !showLogs;
-		if (showLogs && currentProfile?.id && logs.length === 0) {
-			loadingLogs = true;
+		showLogs.update((v) => !v);
+		// fetch logs on first open
+		if (get(showLogs) && currentProfile?.id && logs.length === 0) {
+			loadingLogs.set(true);
 			logs = await getGrindLogs(currentProfile.id);
-			loadingLogs = false;
+			loadingLogs.set(false);
 		}
 	}
 
@@ -273,7 +308,7 @@
 				methodId !== lastCombo.method
 			) {
 				lastCombo = { bean: beanId, grinder: grinderId, method: methodId };
-				lastProfile = null;  // clear previous profile summary
+				lastProfile = null; // clear previous profile summary
 				loadProfile();
 			}
 		} else {
@@ -295,8 +330,8 @@
 			</p>
 		</div>
 	{/if}
-	<h2>Select a Roaster</h2>
 	<div class="new-input">
+		<img src="/roaster.png" height="42px" alt="Roaster" class="icon" />
 		<select bind:value={$selectedRoaster}>
 			<option value="" disabled>Select Roaster</option>
 			{#each $roasters as r}
@@ -316,75 +351,82 @@
 		</button>
 	</div>
 	{#if $showRoasterSelector}
-		<div class="new-input">
+		<div class="new-input" in:fly={{ y: -80, duration: 300 }} out:fly={{ y: -80, duration: 300 }}>
 			<input type="text" placeholder="New roaster name" bind:value={newRoaster} />
 			<button on:click={createRoaster} disabled={!newRoaster.trim()}>Save</button>
 		</div>
 	{/if}
+    {#if $selectedRoaster}
 
-	{#if $selectedRoaster}
-		{#if $showBeanSelector}
-			<input class="" type="text" placeholder="Search beans..." bind:value={$beanSearch} />
-			{#if $loading}
-				<p>Loading beans...</p>
-			{:else if $filteredBeans.length}
-				<ul class="bean-list">
-					{#each $filteredBeans as b}
-						<li>
-							<button
-								type="button"
-								class:active={b.id === $selectedBeanId}
-								on:click={() => {
-									selectedBeanId.set(b.id);
-									showBeanSelector.set(false);
-								}}
-								on:keydown={(e) => {
-									if (e.key === 'Enter' || e.key === ' ') {
-										selectedBeanId.set(b.id);
-										showBeanSelector.set(false);
-									}
-								}}
-							>
-								<img src="/bag-of-coffee.png" alt="Bean" class="icon" />
-								<span>{b.name}</span>
-							</button>
-						</li>
-					{/each}
-				</ul>
-			{:else}
-				<p>No beans found.</p>
-			{/if}
-			{#if $beanSearch && !$beans.find((b) => b.name.toLowerCase() === $beanSearch.toLowerCase())}
-				<button on:click={addNewBean}>Add "{$beanSearch}"</button>
-			{/if}
-		{:else}
-			<div class="selected-bean-display">
-				<img src="/bag-of-coffee.png" alt="Bean" class="icon" />
-				<span>{$selectedBean?.name}</span>
-				<button class="change-btn" on:click={() => showBeanSelector.set(true)}>
-					<img src="/pen-and-paper.png" alt="Change bean" class="icon" />
-				</button>
-			</div>
-		{/if}
-	{/if}
-
-	{#if $selectedBean}
-		<div class="log-section">
-			<h3>Log Grind</h3>
-			{#if $showGrinderSelector}
-				<label for="grinder-select">Grinder</label>
-				<select id="grinder-select" bind:value={$selectedGrinder}>
-					<option value="" disabled>Select Grinder</option>
-					{#each $grinders as g}
-						<option value={g.id}>{g.name}</option>
-					{/each}
-				</select>
-				<div class="new-input">
-					<input class="grinder-select" type="text" placeholder="Add new grinder" bind:value={newGrinder} />
-					<button on:click={createGrinder} disabled={!newGrinder.trim()}>Add Grinder</button>
+	<div class="log-section">
+			{#if $showBeanSelector}
+				<div>
+					<input in:scale class="" type="text" placeholder="Search beans..." bind:value={$beanSearch} />
+					{#if $loading}
+						<p>Loading beans...</p>
+					{:else if $filteredBeans.length}
+						<ul class="bean-list">
+							{#each $filteredBeans as b}
+								<li>
+									<button
+										type="button"
+										class:active={b.id === $selectedBeanId}
+										on:click={() => {
+											selectedBeanId.set(b.id);
+											showBeanSelector.set(false);
+										}}
+										on:keydown={(e) => {
+											if (e.key === 'Enter' || e.key === ' ') {
+												selectedBeanId.set(b.id);
+												showBeanSelector.set(false);
+											}
+										}}
+									>
+										<img src="/bag-of-coffee.png" alt="Bean" class="icon" />
+										<span>{b.name}</span>
+									</button>
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						<p>No beans found.</p>
+					{/if}
+					{#if $beanSearch && !$beans.find((b) => b.name.toLowerCase() === $beanSearch.toLowerCase())}
+						<button on:click={addNewBean}>Add "{$beanSearch}"</button>
+					{/if}
 				</div>
 			{:else}
-				<div class="selected-item-display">
+				<div in:scale class="selected-bean-display">
+					<img src="/bag-of-coffee.png" alt="Bean" class="icon" />
+					<span>{$selectedBean?.name}</span>
+					<button class="change-btn" on:click={() => showBeanSelector.set(true)}>
+						<img src="/pen-and-paper.png" alt="Change bean" class="icon" />
+					</button>
+				</div>
+			{/if}
+
+		{#if $selectedBean}
+			{#if $showGrinderSelector}
+				<div in:scale>
+					<label for="grinder-select">Grinder</label>
+					<select id="grinder-select" bind:value={$selectedGrinder}>
+						<option value="" disabled>Select Grinder</option>
+						{#each $grinders as g}
+							<option value={g.id}>{g.name}</option>
+						{/each}
+					</select>
+					<div class="new-input">
+						<input
+							class="grinder-select"
+							type="text"
+							placeholder="Add new grinder"
+							bind:value={newGrinder}
+						/>
+						<button on:click={createGrinder} disabled={!newGrinder.trim()}>Add Grinder</button>
+					</div>
+				</div>
+			{:else}
+				<div in:scale class="selected-item-display">
 					<img src="/grinder.png" alt="Grinder" class="icon" />
 					<span>{$selectedGrinderObj?.name}</span>
 					<button on:click={() => selectedGrinder.set('')}>
@@ -394,21 +436,23 @@
 			{/if}
 
 			{#if $showMethodSelector}
-				<label for="method-select">Brew Method</label>
-				<select id="method-select" bind:value={$selectedMethod}>
-					<option value="" disabled>Select Brew Method</option>
-					{#each $brewMethods as m}
-						<option value={m.id}>{m.name}</option>
-					{/each}
-				</select>
-				<div class="new-input">
-					<input type="text" placeholder="Add new method" bind:value={newMethod} />
-					<button on:click={createMethod} disabled={!newMethod.trim()}>Add Method</button>
+				<div in:scale>
+					<label for="method-select">Brew Method</label>
+					<select id="method-select" bind:value={$selectedMethod}>
+						<option value="" disabled>Select Brew Method</option>
+						{#each $brewMethods as m}
+							<option value={m.id}>{m.name}</option>
+						{/each}
+					</select>
+					<div class="new-input">
+						<input type="text" placeholder="Add new method" bind:value={newMethod} />
+						<button on:click={createMethod} disabled={!newMethod.trim()}>Add Method</button>
+					</div>
 				</div>
 			{:else}
-				<div class="selected-item-display">
+				<div class="selected-item-display" in:scale>
 					<label for="selected-method">Method:</label>
-					<p id="selected-method">{$selectedMethodObj?.name}</p>
+					<span id="selected-method">{$selectedMethodObj?.name}</span>
 					<button on:click={() => selectedMethod.set('')}>
 						<img src="/pen-and-paper.png" alt="Change method" class="icon" />
 					</button>
@@ -416,8 +460,8 @@
 			{/if}
 			<span class="log-inputs">
 				<div>
-					<label for="setting-input">Setting</label>
 					<input id="setting-input" step="0.5" type="number" bind:value={setting} />
+					<label for="setting-input">Setting</label>
 				</div>
 				<div>
 					<label for="grams-input">Grams</label>
@@ -426,12 +470,12 @@
 			</span>
 			<span class="log-inputs">
 				<div>
-					<label for="adjustment-select">Adjustment</label>
 					<select id="adjustment-select" bind:value={adjustment}>
 						<option value="coarser">Coarser</option>
 						<option value="good">Good</option>
 						<option value="finer">Finer</option>
 					</select>
+					<label for="adjustment-select">Judgement</label>
 				</div>
 
 				<div class="tamped">
@@ -440,18 +484,20 @@
 				</div>
 			</span>
 			<span class="log-inputs">
-				<input
+				<textarea
 					id="outcome-input"
-					type="text"
+					rows="8"
+					style="width: 100%;"
 					placeholder="e.g. short extraction, bitter, etc."
 					bind:value={outcomeText}
-				/>
+				></textarea>
 			</span>
 			<button on:click={submitLog}>Submit Log</button>
 
-			<LogDisplay {logs} loading={loadingLogs} show={showLogs} toggle={toggleLogs} />
-		</div>
-	{/if}
+			<LogDisplay {logs} loading={$loadingLogs} show={$showLogs} toggle={toggleLogs} />
+		{/if}
+	</div>
+    {/if}
 </div>
 
 <style>
@@ -463,9 +509,6 @@
 		border-radius: 8px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		font-family: system-ui, sans-serif;
-	}
-	h2 {
-		margin-bottom: 1rem;
 	}
 	select,
 	input {
@@ -520,14 +563,11 @@
 		margin: 0.5rem 0;
 	}
 	.selected-bean-display {
-		padding: 0.75rem;
-		margin-bottom: 1rem;
-		border: 1px solid #eee;
-		border-radius: 4px;
-		background: #f9f9f9;
+		font-weight: bolder;
+		font-size: larger;
 		display: flex;
 		align-items: center;
-		justify-content: space-around;
+		justify-content: space-between;
 		gap: 0.5rem;
 	}
 	.selected-bean-display .icon {
@@ -535,7 +575,6 @@
 	}
 	.change-btn {
 		margin-top: 0.5rem;
-		padding: 0.75rem;
 		border: none;
 		background: transparent;
 		border-radius: 4px;
@@ -547,27 +586,18 @@
 	.log-section {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
-		margin-top: 1.5rem;
-		padding: 1rem;
-		border: 1px solid #eee;
-		border-radius: 4px;
-		background: #f9f9f9;
+		gap: 1.5rem;
 	}
 
 	.log-inputs {
 		display: flex;
-		justify-content: space-around;
+		justify-content: space-between;
 	}
 
-    #adjustment-select {
-        width: 6rem;
-    }
-
-	.log-section h3 {
-		margin-top: 0;
-		margin-bottom: 1rem;
+	#adjustment-select {
+		width: 6rem;
 	}
+
 	.new-input {
 		display: flex;
 		gap: 0.5rem;
@@ -578,10 +608,8 @@
 		width: 3rem;
 	}
 	.selected-item-display {
-        display: flex;
-        justify-content: space-around;
-		border: 1px solid #eee;
-		border-radius: 4px;
+		display: flex;
+		justify-content: space-between;
 		background: transparent;
 		display: flex;
 		align-items: center;
@@ -589,6 +617,10 @@
 	}
 	.selected-item-display .icon {
 		height: 64px;
+	}
+	.selected-item-display span {
+		font-weight: bolder;
+		font-size: larger;
 	}
 
 	.tamped {
@@ -633,15 +665,25 @@
 	.roaster-toggle {
 		padding: 0 0.5rem;
 		border: none;
-		background: #f0f0f0;
+		background: #f0f0f05c;
 		border-radius: 100%;
 		cursor: pointer;
 		font-size: 1.2rem;
 		height: 2.6rem;
-        width: 2.6rem;
+		width: 2.6rem;
 		line-height: 1;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	@media (max-width: 600px) {
+		.container {
+			max-width: none;
+			margin: 0;
+			padding: 1rem;
+			border-radius: 0;
+			min-height: 100vh;
+		}
 	}
 </style>
