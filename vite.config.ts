@@ -30,7 +30,7 @@ const config = {
         globPatterns: ['**/*.{js,css,html,svg,png}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/<YOUR-SUBDOMAIN>\.nhost\.app\/.*$/,
+            urlPattern: /^https:\/\/.*\.nhost\.app\/.*$/,
             handler: 'NetworkFirst',
             options: { cacheName: 'api-cache' }
           }
