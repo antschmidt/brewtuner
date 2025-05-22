@@ -9,6 +9,7 @@
 		getBrewMethods,
 		upsertProfile,
 		logGrind,
+		logGrinderLog,
 		addGrinder,
 		addBrewMethod,
 		getProfile,
@@ -57,7 +58,7 @@
 	let newMethod = '';
 	let setting = 0;
 	let outcomeText = '';
-	let adjustment: 'coarser' | 'good' | 'finer' = 'good';
+	let adjustment: string;
 	let grams = 0;
 	let tamped = false;
 	let currentProfile: {
@@ -179,6 +180,10 @@
 		}
 		// always log the grind attempt
 		await logGrind(profileId, setting, outcomeText, adjustment, tamped, grams);
+		// also log to the grinder-specific logs when adjustment is 'good'
+		if (adjustment === 'good') {
+			await logGrinderLog(get(selectedGrinder), setting, outcomeText, adjustment, tamped, grams);
+		}
 
 		// Immediately refresh and show logs
 		showLogs.set(true);
@@ -265,7 +270,7 @@
 				grams = currentProfile.grams;
 				tamped = currentProfile.tamped;
 				outcomeText = last.outcome;
-				adjustment = last.adjustment as typeof adjustment;
+				adjustment = last.adjustment;
 			} else {
 				// no logs: reset to defaults
 				setting = 0;
@@ -448,7 +453,12 @@
 						{/each}
 					</select>
 					<div class="new-input">
-						<input id="new-method" type="text" placeholder="Add new method" bind:value={newMethod} />
+						<input
+							id="new-method"
+							type="text"
+							placeholder="Add new method"
+							bind:value={newMethod}
+						/>
 						<button on:click={createMethod} disabled={!newMethod.trim()}>Save</button>
 					</div>
 				</div>
@@ -463,8 +473,10 @@
 			{/if}
 			<span class="log-inputs">
 				<div>
-					<span class="dial"><Dial bind:value={setting} min={-30} max={30} step={0.5} />
-					 {setting}</span>
+					<span class="dial">
+						<input id="setting-input" type="number" step="0.1" bind:value={setting} />
+						<Dial bind:value={setting} min={-30} max={30} step={0.5} />
+					</span>
 				</div>
 				<div>
 					<label for="grams-input" class="right-setting">Grams</label>
@@ -478,7 +490,7 @@
 						<option value="good">Good</option>
 						<option value="finer">Finer</option>
 					</select>
-					<label class="left-setting" for="adjustment-select">Judgement</label>
+					<label class="left-setting" for="adjustment-select">Suggestion</label>
 				</div>
 
 				<div class="tamped">
@@ -517,31 +529,41 @@
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		font-family: system-ui, sans-serif;
 	}
-    select {
-        height: 2.6rem;
-        margin-bottom: 1rem;
-    }
+	select {
+		height: 2.6rem;
+		margin-bottom: 1rem;
+	}
 	select,
 	input {
 		width: 93%;
 		padding: 0.5rem;
 		border: 1px solid #ccc;
 		border-radius: 4px;
-        height: 2rem;
+		height: 2rem;
 	}
-	input.grinder-select, input#new-method {
+	input.grinder-select,
+	input#new-method {
 		width: 100%;
 	}
-    select#grinder-select, select#method-select {
-        font-size: 1rem;
-        height: 2.6rem;
-    }
+	select#grinder-select,
+	select#method-select {
+		font-size: 1rem;
+		height: 2.6rem;
+	}
 	.new-input input {
 		width: 100%;
 	}
-    .dial {
-        display: flex;
-    }
+	.dial {
+		display: flex;
+		gap: 1rem;
+	}
+	textarea {
+		width: 100%;
+		padding: 0.5rem;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		resize: none;
+	}
 
 	.new-input button {
 		width: 30%;
@@ -557,11 +579,11 @@
 		justify-self: center;
 		gap: 0.5rem;
 		margin-top: 0.5rem;
-        width: 100%;
+		width: 100%;
 	}
-    .new-input select {
-        height: 2.6rem;
-    }
+	.new-input select {
+		height: 2.6rem;
+	}
 
 	.left-setting {
 		margin-left: 0.5rem;
@@ -742,7 +764,7 @@
 	}
 
 	/* Dial-style slider for setting */
-	#setting-input[type="range"] {
+	#setting-input[type='range'] {
 		width: 100%;
 	}
 
