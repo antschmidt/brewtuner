@@ -38,7 +38,7 @@
     if (angle > 180) angle -= 360;
     const val = angleToValue(angle);
     if (val !== value) {
-      value = val;
+      value = Math.round((val*10))/10;
       dispatch('input', { value });
     }
   }
@@ -64,8 +64,8 @@
 
 <style>
 .knob {
-  width: 120px;
-  height: 120px;
+  width: 60px;
+  height: 60px;
   border: 3px solid #eee;
   border-radius: 50%;
   position: relative;
