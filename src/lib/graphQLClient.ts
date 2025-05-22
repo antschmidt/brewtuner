@@ -1,5 +1,23 @@
 import { nhost } from './nhostClient';
 
+// Define and export core entity types
+export interface Roaster {
+  id: string;
+  name: string;
+}
+export interface Bean {
+  id: string;
+  name: string;
+}
+export interface Grinder {
+  id: string;
+  name: string;
+}
+export interface BrewMethod {
+  id: string;
+  name: string;
+}
+
 // represent a grinder profile including new fields
 export interface Profile {
   id: string;

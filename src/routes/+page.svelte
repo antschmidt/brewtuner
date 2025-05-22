@@ -332,7 +332,7 @@
 	{/if}
 	<div class="new-input">
 		<img src="/roaster.png" height="42px" alt="Roaster" class="icon" />
-		<select bind:value={$selectedRoaster}>
+		<select id="roaster" bind:value={$selectedRoaster}>
 			<option value="" disabled>Select Roaster</option>
 			{#each $roasters as r}
 				<option value={r.id}>{r.name}</option>
@@ -356,59 +356,62 @@
 			<button on:click={createRoaster} disabled={!newRoaster.trim()}>Save</button>
 		</div>
 	{/if}
-    {#if $selectedRoaster}
-
-	<div class="log-section">
-			{#if $showBeanSelector}
-				<div>
-					<input in:scale class="" type="text" placeholder="Search beans..." bind:value={$beanSearch} />
-					{#if $loading}
-						<p>Loading beans...</p>
-					{:else if $filteredBeans.length}
-						<ul class="bean-list">
-							{#each $filteredBeans as b}
-								<li>
-									<button
-										type="button"
-										class:active={b.id === $selectedBeanId}
-										on:click={() => {
+	{#if $selectedRoaster}
+		{#if $showBeanSelector}
+			<div>
+				<input
+					in:scale
+					class=""
+					type="text"
+					placeholder="Search beans..."
+					bind:value={$beanSearch}
+				/>
+				{#if $loading}
+					<p>Loading beans...</p>
+				{:else if $filteredBeans.length}
+					<ul class="bean-list">
+						{#each $filteredBeans as b}
+							<li>
+								<button
+									type="button"
+									class:active={b.id === $selectedBeanId}
+									on:click={() => {
+										selectedBeanId.set(b.id);
+										showBeanSelector.set(false);
+									}}
+									on:keydown={(e) => {
+										if (e.key === 'Enter' || e.key === ' ') {
 											selectedBeanId.set(b.id);
 											showBeanSelector.set(false);
-										}}
-										on:keydown={(e) => {
-											if (e.key === 'Enter' || e.key === ' ') {
-												selectedBeanId.set(b.id);
-												showBeanSelector.set(false);
-											}
-										}}
-									>
-										<img src="/bag-of-coffee.png" alt="Bean" class="icon" />
-										<span>{b.name}</span>
-									</button>
-								</li>
-							{/each}
-						</ul>
-					{:else}
-						<p>No beans found.</p>
-					{/if}
-					{#if $beanSearch && !$beans.find((b) => b.name.toLowerCase() === $beanSearch.toLowerCase())}
-						<button on:click={addNewBean}>Add "{$beanSearch}"</button>
-					{/if}
-				</div>
-			{:else}
-				<div in:scale class="selected-bean-display">
-					<img src="/bag-of-coffee.png" alt="Bean" class="icon" />
-					<span>{$selectedBean?.name}</span>
-					<button class="change-btn" on:click={() => showBeanSelector.set(true)}>
-						<img src="/pen-and-paper.png" alt="Change bean" class="icon" />
-					</button>
-				</div>
-			{/if}
+										}
+									}}
+								>
+									<img src="/bag-of-coffee.png" alt="Bean" class="icon" />
+									<span>{b.name}</span>
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{:else}
+					<p>No beans found.</p>
+				{/if}
+				{#if $beanSearch && !$beans.find((b) => b.name.toLowerCase() === $beanSearch.toLowerCase())}
+					<button on:click={addNewBean}>Add "{$beanSearch}"</button>
+				{/if}
+			</div>
+		{:else}
+			<div in:scale class="selected-bean-display">
+				<img src="/bag-of-coffee.png" alt="Bean" class="icon" />
+				<span>{$selectedBean?.name}</span>
+				<button class="change-btn" on:click={() => showBeanSelector.set(true)}>
+					<img src="/pen-and-paper.png" alt="Change bean" class="icon" />
+				</button>
+			</div>
+		{/if}
 
 		{#if $selectedBean}
 			{#if $showGrinderSelector}
 				<div in:scale>
-					<label for="grinder-select">Grinder</label>
 					<select id="grinder-select" bind:value={$selectedGrinder}>
 						<option value="" disabled>Select Grinder</option>
 						{#each $grinders as g}
@@ -422,7 +425,7 @@
 							placeholder="Add new grinder"
 							bind:value={newGrinder}
 						/>
-						<button on:click={createGrinder} disabled={!newGrinder.trim()}>Add Grinder</button>
+						<button on:click={createGrinder} disabled={!newGrinder.trim()}>Save</button>
 					</div>
 				</div>
 			{:else}
@@ -437,7 +440,6 @@
 
 			{#if $showMethodSelector}
 				<div in:scale>
-					<label for="method-select">Brew Method</label>
 					<select id="method-select" bind:value={$selectedMethod}>
 						<option value="" disabled>Select Brew Method</option>
 						{#each $brewMethods as m}
@@ -445,8 +447,8 @@
 						{/each}
 					</select>
 					<div class="new-input">
-						<input type="text" placeholder="Add new method" bind:value={newMethod} />
-						<button on:click={createMethod} disabled={!newMethod.trim()}>Add Method</button>
+						<input id="new-method" type="text" placeholder="Add new method" bind:value={newMethod} />
+						<button on:click={createMethod} disabled={!newMethod.trim()}>Save</button>
 					</div>
 				</div>
 			{:else}
@@ -461,10 +463,10 @@
 			<span class="log-inputs">
 				<div>
 					<input id="setting-input" step="0.5" type="number" bind:value={setting} />
-					<label for="setting-input">Setting</label>
+					<label class="left-setting" for="setting-input">Setting</label>
 				</div>
 				<div>
-					<label for="grams-input">Grams</label>
+					<label for="grams-input" class="right-setting">Grams</label>
 					<input id="grams-input" type="number" min="0" bind:value={grams} />
 				</div>
 			</span>
@@ -475,7 +477,7 @@
 						<option value="good">Good</option>
 						<option value="finer">Finer</option>
 					</select>
-					<label for="adjustment-select">Judgement</label>
+					<label class="left-setting" for="adjustment-select">Judgement</label>
 				</div>
 
 				<div class="tamped">
@@ -492,36 +494,85 @@
 					bind:value={outcomeText}
 				></textarea>
 			</span>
-			<button on:click={submitLog}>Submit Log</button>
+			<button class="submit" on:click={submitLog}>Submit</button>
 
 			<LogDisplay {logs} loading={$loadingLogs} show={$showLogs} toggle={toggleLogs} />
 		{/if}
-	</div>
-    {/if}
+	{/if}
 </div>
 
 <style>
 	.container {
+		display: flex;
+		min-height: 100vh;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 1.8rem;
+		justify-content: stretch;
 		max-width: 400px;
-		margin: 2rem auto;
-		padding: 1.5rem;
+		margin: 0 auto;
 		background: saddlebrown;
 		border-radius: 8px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		font-family: system-ui, sans-serif;
 	}
+    select {
+        height: 2.6rem;
+        margin-bottom: 1rem;
+    }
 	select,
 	input {
 		width: 93%;
-		padding: 0.75rem;
-		margin-bottom: 1rem;
+		padding: 0.5rem;
 		border: 1px solid #ccc;
 		border-radius: 4px;
+        height: 2rem;
 	}
+	input.grinder-select, input#new-method {
+		width: 100%;
+	}
+    select#grinder-select, select#method-select {
+        font-size: 1rem;
+        height: 2.6rem;
+    }
+	.new-input input {
+		width: 100%;
+	}
+
+	.new-input button {
+		width: 30%;
+		margin-right: 1.6rem;
+		background: rgb(37, 30, 20);
+		color: white;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+	.new-input {
+		display: flex;
+		justify-self: center;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+        width: 100%;
+	}
+    .new-input select {
+        height: 2.6rem;
+    }
+
+	.left-setting {
+		margin-left: 0.5rem;
+		font-size: 1rem;
+	}
+
+	.right-setting {
+		margin-right: 0.5rem;
+		font-size: 1rem;
+	}
+
 	.bean-list {
 		display: flex;
 		padding: 0;
-		margin: 0 0 1rem;
+		margin: 1rem 0;
 		max-height: 150px;
 		overflow-y: auto;
 		border: 1px solid #eee;
@@ -598,11 +649,6 @@
 		width: 6rem;
 	}
 
-	.new-input {
-		display: flex;
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-	}
 	#setting-input,
 	#grams-input {
 		width: 3rem;
@@ -638,8 +684,8 @@
 	.tamped input[type='checkbox'] {
 		-webkit-appearance: none;
 		appearance: none;
-		width: 1.2em;
-		height: 1.2em;
+		width: 1.6rem;
+		height: 1.6rem;
 		border: 1px solid #000;
 		background: transparent;
 		position: relative;
@@ -662,24 +708,38 @@
 		opacity: 1;
 	}
 
+	.new-input select {
+		width: 100%;
+	}
+
 	.roaster-toggle {
 		padding: 0 0.5rem;
-		border: none;
+		border: 1px solid #ddd;
 		background: #f0f0f05c;
 		border-radius: 100%;
 		cursor: pointer;
 		font-size: 1.2rem;
 		height: 2.6rem;
 		width: 2.6rem;
-		line-height: 1;
-		display: flex;
 		align-items: center;
-		justify-content: center;
+	}
+
+	.submit {
+		background: black;
+		color: white;
+		width: 50%;
+		align-self: center;
+		padding: 0.75rem 1.5rem;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 2rem;
+		margin-top: 1rem;
 	}
 
 	@media (max-width: 600px) {
 		.container {
-			max-width: none;
+			max-width: 100%;
 			margin: 0;
 			padding: 1rem;
 			border-radius: 0;
