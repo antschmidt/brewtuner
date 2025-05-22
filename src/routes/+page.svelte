@@ -18,6 +18,7 @@
 	import type { GrindLog } from '$lib/graphQLClient';
 	import LogDisplay from '$lib/LogDisplay.svelte';
 	import { fly, scale } from 'svelte/transition';
+	import Dial from '$lib/Dial.svelte';
 
 	interface Roaster {
 		id: string;
@@ -462,8 +463,8 @@
 			{/if}
 			<span class="log-inputs">
 				<div>
-					<input id="setting-input" step="0.5" type="number" bind:value={setting} />
-					<label class="left-setting" for="setting-input">Setting</label>
+					<span class="dial"><Dial bind:value={setting} min={-30} max={30} step={0.5} />
+					 {setting}</span>
 				</div>
 				<div>
 					<label for="grams-input" class="right-setting">Grams</label>
@@ -538,6 +539,9 @@
 	.new-input input {
 		width: 100%;
 	}
+    .dial {
+        display: flex;
+    }
 
 	.new-input button {
 		width: 30%;
@@ -735,6 +739,11 @@
 		cursor: pointer;
 		font-size: 2rem;
 		margin-top: 1rem;
+	}
+
+	/* Dial-style slider for setting */
+	#setting-input[type="range"] {
+		width: 100%;
 	}
 
 	@media (max-width: 600px) {
