@@ -30,13 +30,16 @@
 			{:else if logs.length}
 				{#each logs as log}
 					<div class="log-item">
-						<div class="log-field"><span class="log-dial"><Dial value={log.setting}/><strong> {log.setting}</strong></span></div>
+						<div class="log-field"><Dial value={log.setting}/><strong> {log.setting}</strong></div>
                         {#if log.adjustment !== 'good'}
                             <div class="log-field"><strong>Try </strong> {log.adjustment}</div>
                         {:else}
-                            <div class="log-field"><strong>Just right {`:)`}</strong></div>
+                            <div class="log-field"><img alt="adjustment" height="42px" src="blind-justice.png" /><strong>Just right {`:)`}</strong></div>
                         {/if}
-                        <div class="log-field"><strong>Grams:</strong> {log.grams}</div>
+                        <div class="log-field"><img alt="grams" height="42px" src="/coffee-scale.png" /> {log.grams}g</div>
+                        {#if log.tamped}
+                            <div class="log-field"><img alt="tamped" height="42px" src="/tamper-transparent.png" /></div>
+                        {/if}
 						<div class="log-field"><strong>Notes:</strong> {log.outcome}</div>
 
 						<div class="log-date">{new Date(log.created_at).toLocaleString()}</div>
@@ -54,7 +57,7 @@
 		/* circular toggle with subtle background */
 		display: inline-flex;
 		align-items: center;
-		justify-content: center;
+		justify-content: space-between;
 		width: 36px;
 		height: 36px;
 		border-radius: 50%;
@@ -71,11 +74,11 @@
 	.logs:hover {
 		background: #e0e0e0;
 	}
-    .log-dial {
+    .log-item .log-field {
         display: flex;
         margin-right: 0.5rem;
         align-items: center;
-        gap: 1rem;
+        gap: 0.8rem;
     }
 
 	.log-display {
@@ -113,6 +116,7 @@
 		flex: 1 1 120px;
 		font-size: 0.9rem;
 		color: #555;
+        justify-content: center;
 	}
 	.log-field strong {
 		color: #333;
