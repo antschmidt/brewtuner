@@ -248,6 +248,7 @@ export async function addBrewMethod(name: string) {
 
 // insert a new roaster
 export async function addRoaster(name: string) {
+console.log("Adding roaster:", name);
   const mutation = `
     mutation ($name: String!) {
       insert_roasters_one(object: { name: $name }) {

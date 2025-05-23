@@ -61,7 +61,6 @@
 		width: 36px;
 		height: 36px;
 		border-radius: 50%;
-		background: #f5f5f5;
 		transition: background 0.2s;
 		border: none;
 		cursor: pointer;
@@ -84,7 +83,7 @@
 	.log-display {
 		margin-top: 1rem;
 		padding: 1rem;
-		background: #fff;
+		background: #ffffff15;
 		border-radius: 8px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	}
@@ -102,7 +101,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 1rem;
-		background: #fafafa;
+		background: #fafafa3d;
 		margin-bottom: 0.75rem;
 		padding: 0.75rem;
 		border-radius: 6px;
