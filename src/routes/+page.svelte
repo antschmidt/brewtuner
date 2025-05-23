@@ -50,8 +50,8 @@
 	const selectedBeanId = writable<string>('');
 	const showBeanSelector = writable(false);
 	let isRestoring = true;
-	const showGrinderSelector = writable(true);
-	const showMethodSelector = writable(true);
+	const showGrinderSelector = writable(false);
+	const showMethodSelector = writable(false);
 	const grinders = writable<Grinder[]>([]);
 	const brewMethods = writable<BrewMethod[]>([]);
 	const selectedGrinder = writable<string>('');
@@ -75,7 +75,7 @@
 	const showLogs = writableLocal(false);
 	const loadingLogs = writableLocal(false);
 	let showLogsLocal = false;
-	const showRoasterSelector = writable(true);
+	const showRoasterSelector = writable(false);
 	let newRoaster = '';
 	let newBean = '';
 
@@ -117,13 +117,13 @@
 			}
 		}
 		// default to showing bean selector if no bean was restored
-		if (!get(selectedBeanId)) {
-			showBeanSelector.set(true);
-		}
+		// if (!get(selectedBeanId)) {
+		// 	showBeanSelector.set(true);
+		// }
 		// default to showing roaster selector if no roaster was selected
-		if (!get(selectedRoaster)) {
-			showRoasterSelector.set(true);
-		}
+		// if (!get(selectedRoaster)) {
+		// 	showRoasterSelector.set(true);
+		// }
 		isRestoring = false;
 	});
 
@@ -131,10 +131,9 @@
 		// clear any previous bean selection and search when roaster changes
 		selectedBeanId.set('');
 		beanSearch.set('');
-		if (!isRestoring) showBeanSelector.set(true);
 		// auto-open roaster selector if cleared
 		if (!id) {
-			showRoasterSelector.set(true);
+			// showRoasterSelector.set(true);
 			return beans.set([]);
 		}
 		if (!id) return beans.set([]);
@@ -142,6 +141,9 @@
 		beans.set(await getBeans(id));
 		loading.set(false);
 		showRoasterSelector.set(false);
+        showBeanSelector.set(false);
+        showGrinderSelector.set(false);
+        showMethodSelector.set(false);
 	});
 
 	const filteredBeans = derived([beans, beanSearch], ([$beans, $search]) =>
@@ -233,12 +235,11 @@
 
 	// toggle grinder selector when selectedGrinder changes
 	selectedGrinder.subscribe((id) => {
-		showGrinderSelector.set(!id);
+        showMethodSelector.set(false);
 		if (!id) newGrinder = '';
 	});
 	// toggle method selector when selectedMethod changes
 	selectedMethod.subscribe((id) => {
-		showMethodSelector.set(!id);
 		if (!id) newMethod = '';
 	});
 
