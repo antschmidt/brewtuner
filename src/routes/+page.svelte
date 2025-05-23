@@ -60,7 +60,7 @@
 	let newMethod = '';
 	let setting = 0;
 	let outcomeText = '';
-	let adjustment: string;
+	let adjustment: 'coarser' | 'good' | 'finer' = 'good';
 	let grams = 0;
 	let tamped = false;
 	let currentProfile: {
@@ -77,6 +77,7 @@
 	let showLogsLocal = false;
 	const showRoasterSelector = writable(true);
 	let newRoaster = '';
+	let newBean = '';
 
 	onMount(async () => {
 		const fetchedRoasters = await getRoasters();
@@ -152,42 +153,23 @@
 		return $beans.find((b) => b.id === $id) || null;
 	});
 
-	async function addNewBean() {
-		const $selectedRoaster = get(selectedRoaster);
-		const $beanSearch = get(beanSearch);
-		if (!$selectedRoaster || !$beanSearch.trim()) return;
-		const newBean = await addBean($selectedRoaster, $beanSearch.trim());
-		beans.update((bs) => [newBean, ...bs]);
-		beanSearch.set('');
-		selectedBeanId.set(newBean.id);
-		showBeanSelector.set(false);
-	}
-
 	async function submitLog() {
 		const beanId = get(selectedBeanId);
 		let profileId: string;
-		// only update the stored profile when marked 'good'
-		if (adjustment === 'good') {
-			const profile = await upsertProfile(
-				beanId,
-				get(selectedGrinder),
-				get(selectedMethod),
-				setting,
-				grams,
-				tamped
-			);
-			console.log('submitLog (profile upsert):', profile);
-			lastProfile = {
-				setting: profile.profile_setting,
-				grams: profile.grams,
-				tamped: profile.tamped
-			};
+		// create profile if none exists, update only on 'good'
+		if (!currentProfile?.id) {
+			const profile = await upsertProfile(beanId, get(selectedGrinder), get(selectedMethod), setting, grams, tamped);
+			console.log('submitLog (initial profile creation):', profile);
+			lastProfile = { setting: profile.profile_setting, grams: profile.grams, tamped: profile.tamped };
 			profileId = profile.id;
-		} else if (currentProfile?.id) {
-			profileId = currentProfile.id;
+		} else if (adjustment === 'good') {
+			const profile = await upsertProfile(beanId, get(selectedGrinder), get(selectedMethod), setting, grams, tamped);
+			console.log('submitLog (profile upsert):', profile);
+			lastProfile = { setting: profile.profile_setting, grams: profile.grams, tamped: profile.tamped };
+			profileId = profile.id;
 		} else {
-			console.warn('No existing profile to log against');
-			return;
+			// existing profile, no update
+			profileId = currentProfile.id;
 		}
 		// always log the grind attempt
 		await logGrind(profileId, setting, outcomeText, adjustment, tamped, grams);
@@ -239,6 +221,14 @@
 		roasters.update((list) => [...list, r]);
 		selectedRoaster.set(r.id);
 		newRoaster = '';
+	}
+
+	async function addNewBean() {
+		const b = await addBean($selectedRoaster, newBean.trim());
+		beans.update((list) => [...list, b]);
+		selectedBeanId.set(b.id);
+		newBean = '';
+		showBeanSelector.set(false);
 	}
 
 	// toggle grinder selector when selectedGrinder changes
@@ -349,7 +339,7 @@
 	{/if}
 	<Selector show={showRoasterSelector} expandTransition={fly} expandParams={{ duration: 300 }}>
 		<!-- expanded roaster selection -->
-		<div class="new-input">
+		<!-- <div class="new-input">
 			<img src="/roaster.png" width="64px" alt="Roaster" class="icon" />
 			<select id="roaster" bind:value={$selectedRoaster}>
 				<option value="" disabled>Select Roaster</option>
@@ -357,132 +347,125 @@
 					<option value={r.id}>{r.name}</option>
 				{/each}
 			</select>
-		</div>
+		</div> -->
 		<div class="new-input">
 			<input type="text" placeholder="New roaster name" bind:value={newRoaster} />
 			<button on:click={createRoaster} disabled={!newRoaster.trim()}>Save</button>
 		</div>
 		<!-- summary roaster view -->
-		<button
-			class="summary-button"
-			slot="summary"
-			type="button"
-			in:scale
-			on:click={() => showRoasterSelector.set(true)}
-		>
+		<div slot="summary" class="summary-select-wrapper summary-button">
+			<select
+				value={$selectedRoaster}
+				on:change={(e) => {
+					const v = e.target.value;
+					if (v === '__add__') {
+						showRoasterSelector.set(true);
+					} else {
+						selectedRoaster.set(v);
+						showRoasterSelector.set(false);
+					}
+				}}
+			>
+				<option value="" disabled hidden>Select Roaster</option>
+				<option value="__add__">+ Add New Roaster</option>
+				{#each $roasters as r}
+					<option value={r.id}>{r.name}</option>
+				{/each}
+			</select>
 			<img src="/roaster.png" width="64px" alt="Roaster" class="icon" />
-			<span>{$roasters.find((r) => r.id === $selectedRoaster)?.name}</span>
-		</button>
-	</Selector>
-	<Selector show={showBeanSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
-		<!-- bean search view -->
-		<div>
-			<input in:scale type="text" placeholder="Search beans..." bind:value={$beanSearch} />
-			{#if $loading}
-				<p>Loading beans...</p>
-			{:else if $filteredBeans.length}
-				<ul class="bean-list">
-					{#each $filteredBeans as b}
-						<li>
-							<button
-								type="button"
-								class:active={b.id === $selectedBeanId}
-								on:click={() => {
-									selectedBeanId.set(b.id);
-									showBeanSelector.set(false);
-								}}
-								on:keydown={(e) => {
-									if (e.key === 'Enter' || e.key === ' ') {
-										selectedBeanId.set(b.id);
-										showBeanSelector.set(false);
-									}
-								}}
-							>
-								<img height="64px" src="/bag-of-coffee.png" alt="Bean" class="icon" />
-								<span>{b.name}</span>
-							</button>
-						</li>
-					{/each}
-				</ul>
-			{:else}
-				<p>No beans found.</p>
-			{/if}
-			{#if $beanSearch && !$beans.find((b) => b.name.toLowerCase() === $beanSearch.toLowerCase())}
-				<button on:click={addNewBean}>Add "{$beanSearch}"</button>
-			{/if}
+			<span>{$roasters.find((r) => r.id === $selectedRoaster)?.name || `Add New Roaster`}</span>
 		</div>
-		<!-- summary bean view -->
-		<button
-			class="summary-button"
-			type="button"
-			slot="summary"
-			in:scale
-			on:click={() => showBeanSelector.set(true)}
-		>
-			<img width="64px" src="/bag-of-coffee.png" alt="Bean" class="icon" />
-			<span>{$selectedBean?.name}</span>
-		</button>
 	</Selector>
+
+	{#if $selectedRoaster}
+		<Selector show={showBeanSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
+			<div class="new-input">
+				<input type="text" placeholder="New bean name" bind:value={newBean} />
+				<button on:click={addNewBean} disabled={!newBean.trim()}>Save</button>
+			</div>
+			<!-- summary bean view -->
+			<div slot="summary" class="summary-select-wrapper summary-button">
+				<select
+					value={$selectedBeanId}
+					on:change={(e) => {
+						const v = e.target.value;
+						if (v === '__add__') {
+							showBeanSelector.set(true);
+						} else {
+							selectedBeanId.set(v);
+							showBeanSelector.set(false);
+						}
+					}}
+				>
+					<option value="" disabled hidden>Select Bean</option>
+					<option value="__add__">+ Add New Bean</option>
+					{#each $beans as b}
+						<option value={b.id}>{b.name}</option>
+					{/each}
+				</select>
+				<img width="64px" src="/bag-of-coffee.png" alt="Bean" class="icon" />
+				<span>{$selectedBean?.name || `Select a bean`}</span>
+			</div>
+		</Selector>
+	{/if}
 
 	{#if $selectedBean}
 		<Selector show={showGrinderSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
-			<div in:scale>
-				<select id="grinder-select" bind:value={$selectedGrinder}>
-					<option value="" disabled>Select Grinder</option>
+			<div class="new-input">
+				<input type="text" placeholder="Add new grinder" bind:value={newGrinder} />
+				<button on:click={createGrinder} disabled={!newGrinder.trim()}>Save</button>
+			</div>
+			<div slot="summary" class="summary-select-wrapper summary-button">
+				<select
+					value={$selectedGrinder}
+					on:change={(e) => {
+						const v = e.target.value;
+						if (v === '__add__') {
+							showGrinderSelector.set(true);
+						} else {
+							selectedGrinder.set(v);
+							showGrinderSelector.set(false);
+						}
+					}}
+				>
+					<option value="" disabled hidden>Select Grinder</option>
+					<option value="__add__">+ Add New Grinder</option>
 					{#each $grinders as g}
 						<option value={g.id}>{g.name}</option>
 					{/each}
 				</select>
-				<div class="new-input">
-					<input
-						class="grinder-select"
-						type="text"
-						placeholder="Add new grinder"
-						bind:value={newGrinder}
-					/>
-					<button on:click={createGrinder} disabled={!newGrinder.trim()}>Save</button>
-				</div>
-			</div>
-			<button
-				class="summary-button"
-				type="button"
-				slot="summary"
-				in:scale
-				on:click={() => selectedGrinder.set('')}
-			>
 				<img src="/grinder.png" height="64px" alt="Grinder" class="icon" />
-				<span>{$selectedGrinderObj?.name}</span>
-			</button>
+				<span>{$selectedGrinderObj?.name || 'Select a grinder'}</span>
+			</div>
 		</Selector>
 		{#if $selectedGrinder}
 			<Selector show={showMethodSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
-				<div in:scale>
-					<select id="method-select" bind:value={$selectedMethod}>
-						<option value="" disabled>Select Brew Method</option>
+				<div class="new-input">
+					<input id="new-method" type="text" placeholder="Add new method" bind:value={newMethod} />
+					<button on:click={createMethod} disabled={!newMethod.trim()}>Save</button>
+				</div>
+				<div slot="summary" class="summary-select-wrapper summary-button">
+					<select
+						value={$selectedMethod}
+						on:change={(e) => {
+							const v = e.target.value;
+							if (v === '__add__') {
+								showMethodSelector.set(true);
+							} else {
+								selectedMethod.set(v);
+								showMethodSelector.set(false);
+							}
+						}}
+					>
+						<option value="" disabled hidden>Select Method</option>
+						<option value="__add__">+ Add New Method</option>
 						{#each $brewMethods as m}
 							<option value={m.id}>{m.name}</option>
 						{/each}
 					</select>
-					<div class="new-input">
-						<input
-							id="new-method"
-							type="text"
-							placeholder="Add new method"
-							bind:value={newMethod}
-						/>
-						<button on:click={createMethod} disabled={!newMethod.trim()}>Save</button>
-					</div>
-				</div>
-				<button
-					slot="summary"
-					class="summary-button"
-					type="button"
-					in:scale
-					on:click={() => showMethodSelector.set(true)}
-				>
 					<img src="/method.png" width="64px" alt="Method" class="icon" />
-					<span id="selected-method">{$selectedMethodObj?.name}</span>
-				</button>
+					<span id="selected-method">{$selectedMethodObj?.name || `Select a method`}</span>
+				</div>
 			</Selector>
 			{#if $selectedMethod}
 				<span class="log-inputs">
@@ -501,14 +484,14 @@
 					</div>
 				</span>
 				<span class="log-inputs">
-                    <div class="tamped">
+					<div class="tamped">
 						<select id="adjustment-select" bind:value={adjustment}>
 							<option value="coarser">Coarser</option>
 							<option value="good">Good</option>
 							<option value="finer">Finer</option>
 						</select>
 						<img alt="adjustment" height="64px" src="idea.png" />
-                    </div>
+					</div>
 
 					<div class="tamped">
 						<img src="/tamper-transparent.png" alt="Tamped?" class="icon" />
@@ -524,7 +507,7 @@
 						bind:value={outcomeText}
 					></textarea>
 				</span>
-				<button class="submit" on:click={submitLog}>Submit</button>
+				<button class="submit" on:click|preventDefault={submitLog} type="button">Submit</button>
 
 				<LogDisplay {logs} loading={$loadingLogs} show={$showLogs} toggle={toggleLogs} />
 			{/if}
@@ -550,7 +533,7 @@
 	select {
 		height: 2.6rem;
 		margin-bottom: 1rem;
-        color: black;
+		color: black;
 	}
 	select,
 	input {
@@ -559,16 +542,9 @@
 		border: 1px solid #ccc;
 		border-radius: 4px;
 		height: 2rem;
+		background: rgb(120, 23, 23);
 	}
-	input.grinder-select,
-	input#new-method {
-		width: 100%;
-	}
-	select#grinder-select,
-	select#method-select {
-		font-size: 1rem;
-		height: 2.6rem;
-	}
+
 	.new-input input {
 		width: 100%;
 	}
@@ -581,9 +557,9 @@
 		padding: 0.5rem;
 		border: 1px solid #ccc;
 		border-radius: 4px;
-        font-size: 1.2rem;
+		font-size: 1.2rem;
 		resize: none;
-        background-color: rgba(222, 184, 135, 0.678);
+		background-color: rgba(222, 184, 135, 0.678);
 	}
 
 	.new-input button {
@@ -602,50 +578,12 @@
 		margin-top: 0.5rem;
 		width: 100%;
 	}
-	.new-input select {
-		height: 2.6rem;
-	}
 
 	.right-setting {
 		margin-right: 0.5rem;
 		font-size: 1rem;
 	}
 
-	.bean-list {
-		display: flex;
-		padding: 0;
-		margin: 1rem 0;
-		max-height: 150px;
-		overflow-y: auto;
-		border: 1px solid #eee;
-		border-radius: 4px;
-	}
-	.bean-list li {
-		display: flex;
-		align-items: center;
-		padding: 0.5rem;
-		cursor: pointer;
-	}
-	.bean-list li img {
-		height: 48px;
-		padding: 0.5rem;
-	}
-	.bean-list li button {
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 0.5rem;
-		background: transparent;
-		border: none;
-		text-align: left;
-	}
-	.bean-list li button span {
-		font-weight: bold;
-	}
-	.bean-list li:hover {
-		background: #667652;
-	}
 	button {
 		border: none;
 		background: transparent;
@@ -681,10 +619,10 @@
 	}
 
 	#adjustment-select {
-        background-color: #ffffff1a;
+		background-color: #ffffff1a;
 		margin: 1rem 0;
-        border: 0px;
-        height: 3rem;
+		border: 0px;
+		height: 3rem;
 	}
 
 	#setting-input,
@@ -735,10 +673,6 @@
 		opacity: 1;
 	}
 
-	.new-input select {
-		width: 100%;
-	}
-
 	.submit {
 		background: black;
 		color: white;
@@ -761,6 +695,19 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+	}
+
+	.summary-select-wrapper {
+		position: relative;
+	}
+	.summary-select-wrapper select {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		cursor: pointer;
 	}
 
 	@media (max-width: 600px) {

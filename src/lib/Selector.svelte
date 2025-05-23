@@ -2,37 +2,46 @@
 	import { scale } from 'svelte/transition';
 	import type { Writable } from 'svelte/store';
 
-	/**
-	 * A wrapper that toggles between an expanded selector and a summary view.
-	 * Default and summary content are provided via slots.
-	 */
 	export let show: Writable<boolean>;
 	export let expandTransition = scale;
 	export let expandParams = { duration: 200 };
 </script>
 
-{#if $show}
-	<div in:expandTransition={expandParams}>
+<details class="selector" bind:open={$show}>
+	<summary class="summary-button">
+		<slot name="summary" />
+	</summary>
+	<div in:expandTransition={expandParams} class="expanded">
 		<slot />
 	</div>
-{:else}
-	<div class="selected-item-display" in:expandTransition={expandParams}>
-		<slot name="summary" />
-	</div>
-{/if}
+</details>
 
 <style>
-	.selected-item-display {
-		display: flex;
-		justify-content: space-around;
-        width: 100%;
-        align-items: center;;
-		background: transparent;
-		align-items: center;
-		gap: 0.5rem;
+	.selector {
+		width: 100%;
+		margin: 0;
+		padding: 0;
 	}
-    .selected-item-display:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-    }
+	summary {
+		list-style: none;
+		cursor: pointer;
+		padding: 0;
+	}
+	summary::-webkit-details-marker {
+		display: none;
+	}
+	.expanded {
+		margin-top: 0.5rem;
+	}
+	/* reuse existing summary-button style */
+	.summary-button {
+		display: flex;
+		width: 100%;
+		background: transparent;
+		border: none;
+		align-items: center;
+		justify-content: space-around;
+		gap: 0.5rem;
+		cursor: pointer;
+	}
 </style>
