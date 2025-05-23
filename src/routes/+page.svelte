@@ -373,7 +373,7 @@
 				{/each}
 			</select>
 			<img src="/roaster.png" width="64px" alt="Roaster" class="icon" />
-			<span>{$roasters.find((r) => r.id === $selectedRoaster)?.name || `Add New Roaster`}</span>
+			<span>{$roasters.find((r) => r.id === $selectedRoaster)?.name || `Select a roaster`}</span>
 		</div>
 	</Selector>
 
