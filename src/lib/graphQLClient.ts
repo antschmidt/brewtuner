@@ -33,6 +33,14 @@ export interface GrindLog {
   setting: number;
   outcome: string;
   adjustment: string;
+  grams: number;
+  tamped: boolean;
+  created_at: string;
+}
+
+// log a grinder-specific log entry
+export interface GrinderLog {
+  id: string;
   created_at: string;
 }
 
@@ -162,6 +170,37 @@ export async function logGrind(profileId: string, setting: number, outcome: stri
     return response.data.insert_grind_logs_one;
 }
 
+// log a grinder-specific log entry
+export async function logGrinderLog(
+  grinderId: string,
+  setting: number,
+  outcome: string,
+  adjustment: 'coarser' | 'finer' | 'good',
+  tamped: boolean = false,
+  grams: number
+): Promise<GrinderLog> {
+  const mutation = `
+    mutation ($grinder_id: uuid!, $setting: numeric!, $outcome: String!, $adjustment: String!, $tamped: Boolean!, $grams: numeric!) {
+      insert_grinder_logs_one(
+        object: {
+          grinder_id: $grinder_id,
+          setting: $setting,
+          outcome: $outcome,
+          adjustment: $adjustment,
+          tamped: $tamped,
+          grams: $grams
+        }
+      ) {
+        id
+        created_at
+      }
+    }
+  `;
+  const vars = { grinder_id: grinderId, setting, outcome, adjustment, tamped, grams };
+  const response = await nhost.graphql.request<{ insert_grinder_logs_one: GrinderLog }>(mutation, vars);
+  return response.data.insert_grinder_logs_one;
+}
+
 // insert a new bean under a roaster
 export async function addBean(roasterId: string, name: string) {
   const mutation = `
@@ -209,6 +248,7 @@ export async function addBrewMethod(name: string) {
 
 // insert a new roaster
 export async function addRoaster(name: string) {
+console.log("Adding roaster:", name);
   const mutation = `
     mutation ($name: String!) {
       insert_roasters_one(object: { name: $name }) {
@@ -265,6 +305,7 @@ export async function getGrindLogs(profileId: string): Promise<GrindLog[]> {
         setting
         outcome
         adjustment
+        grams
         created_at
         tamped
       }
