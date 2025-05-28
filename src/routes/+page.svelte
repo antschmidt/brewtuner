@@ -141,9 +141,9 @@
 		beans.set(await getBeans(id));
 		loading.set(false);
 		showRoasterSelector.set(false);
-        showBeanSelector.set(false);
-        showGrinderSelector.set(false);
-        showMethodSelector.set(false);
+		showBeanSelector.set(false);
+		showGrinderSelector.set(false);
+		showMethodSelector.set(false);
 	});
 
 	const filteredBeans = derived([beans, beanSearch], ([$beans, $search]) =>
@@ -160,14 +160,36 @@
 		let profileId: string;
 		// create profile if none exists, update only on 'good'
 		if (!currentProfile?.id) {
-			const profile = await upsertProfile(beanId, get(selectedGrinder), get(selectedMethod), setting, grams, tamped);
+			const profile = await upsertProfile(
+				beanId,
+				get(selectedGrinder),
+				get(selectedMethod),
+				setting,
+				grams,
+				tamped
+			);
 			console.log('submitLog (initial profile creation):', profile);
-			lastProfile = { setting: profile.profile_setting, grams: profile.grams, tamped: profile.tamped };
+			lastProfile = {
+				setting: profile.profile_setting,
+				grams: profile.grams,
+				tamped: profile.tamped
+			};
 			profileId = profile.id;
 		} else if (adjustment === 'good') {
-			const profile = await upsertProfile(beanId, get(selectedGrinder), get(selectedMethod), setting, grams, tamped);
+			const profile = await upsertProfile(
+				beanId,
+				get(selectedGrinder),
+				get(selectedMethod),
+				setting,
+				grams,
+				tamped
+			);
 			console.log('submitLog (profile upsert):', profile);
-			lastProfile = { setting: profile.profile_setting, grams: profile.grams, tamped: profile.tamped };
+			lastProfile = {
+				setting: profile.profile_setting,
+				grams: profile.grams,
+				tamped: profile.tamped
+			};
 			profileId = profile.id;
 		} else {
 			// existing profile, no update
@@ -235,7 +257,7 @@
 
 	// toggle grinder selector when selectedGrinder changes
 	selectedGrinder.subscribe((id) => {
-        showMethodSelector.set(false);
+		showMethodSelector.set(false);
 		if (!id) newGrinder = '';
 	});
 	// toggle method selector when selectedMethod changes
@@ -521,13 +543,11 @@
 		display: flex;
 		min-height: 100vh;
 		flex-direction: column;
-		align-items: stretch;
 		gap: 1.8rem;
-		justify-content: stretch;
-		max-width: 400px;
+		justify-content: space-evenly;
+		padding: 2rem 1rem 1rem 1rem;
 		margin: 0 auto;
 		background: rgb(167, 94, 42);
-		border-radius: 8px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		font-family: system-ui, sans-serif;
 	}
@@ -616,7 +636,7 @@
 
 	.log-inputs {
 		display: flex;
-		justify-content: space-between;
+		justify-content: space-around;
 	}
 
 	#adjustment-select {
