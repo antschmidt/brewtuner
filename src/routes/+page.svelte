@@ -349,6 +349,12 @@
 	selectedBeanId.subscribe(checkAndLoad);
 	selectedGrinder.subscribe(checkAndLoad);
 	selectedMethod.subscribe(checkAndLoad);
+
+	function handleLogUpdated(event: CustomEvent<GrindLog>) {
+		const updatedLog = event.detail;
+		// Update the local 'logs' array to be reactive
+		logs = logs.map(log => (log.id === updatedLog.id ? updatedLog : log));
+	}
 </script>
 
 <div class="container">
@@ -532,7 +538,7 @@
 				</span>
 				<button class="submit" on:click|preventDefault={submitLog} type="button">Submit</button>
 
-				<LogDisplay {logs} loading={$loadingLogs} show={$showLogs} toggle={toggleLogs} />
+				<LogDisplay {logs} loading={$loadingLogs} show={$showLogs} toggle={toggleLogs} on:logupdated={handleLogUpdated} />
 			{/if}
 		{/if}
 	{/if}
