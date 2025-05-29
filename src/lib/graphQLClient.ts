@@ -261,6 +261,71 @@ console.log("Adding roaster:", name);
   return response.data.insert_roasters_one;
 }
 
+export async function updateGrinderLog(
+  logId: string,
+  updates: {
+    setting?: number;
+    outcome?: string;
+    adjustment?: 'coarser' | 'finer' | 'good';
+    tamped?: boolean;
+    grams?: number;
+  }
+): Promise<GrindLog> {
+  const mutation = `
+    mutation UpdateGrinderLog(
+      $id: uuid!,
+      $setting: numeric,
+      $outcome: String,
+      $adjustment: String,
+      $tamped: Boolean,
+      $grams: numeric
+    ) {
+      update_grind_logs_by_pk(
+        pk_columns: { id: $id },
+        _set: {
+          setting: $setting,
+          outcome: $outcome,
+          adjustment: $adjustment,
+          tamped: $tamped,
+          grams: $grams
+        }
+      ) {
+        id
+        setting
+        outcome
+        adjustment
+        tamped
+        grams
+        created_at
+        profile_id # Assuming you might need this or other fields
+      }
+    }
+  `;
+  const variables = { id: logId, ...updates };
+  
+  // Filter out undefined properties from updates, so they are not sent in _set
+  // Hasura typically ignores undefined fields in _set, but explicit is often better.
+  for (const key in variables) {
+    if (variables[key] === undefined) {
+      delete variables[key];
+    }
+  }
+  // Ensure 'id' is always present
+  variables.id = logId;
+
+
+  const response = await nhost.graphql.request<{ update_grind_logs_by_pk: GrindLog }>(
+    mutation,
+    variables
+  );
+
+  if (response.error || !response.data?.update_grind_logs_by_pk) {
+    console.error("Error updating grinder log:", response.error);
+    throw response.error || new Error("Failed to update grinder log or no data returned.");
+  }
+  return response.data.update_grind_logs_by_pk;
+}
+
 // fetch existing profile by bean, grinder, and brew method
 export async function getProfile(
   beanId: string,
