@@ -8,8 +8,8 @@ const config = {
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Coffee Dialer',
-        short_name: 'Dialer',
+        name: 'Brew Tuner',
+        short_name: 'Brew Tuner',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
