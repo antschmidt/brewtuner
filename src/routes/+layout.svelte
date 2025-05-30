@@ -22,6 +22,7 @@
 
   let email = '';
   let password = '';
+  let isLoginView = true; // Added to toggle between login and signup
 
   const login = async () => {
     await nhost.auth.signIn({email, password});
@@ -29,6 +30,34 @@
 
   const logout = async () => {
     await nhost.auth.signOut();
+  };
+
+  const signup = async () => {
+    const { error } = await nhost.auth.signUp({ email, password });
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    alert('Signup successful! Please check your email to verify your account.'); 
+    isLoginView = true; 
+  };
+
+  const signInWithGoogle = async () => {
+    const { error } = await nhost.auth.signIn({
+      provider: 'google'
+    });
+    if (error) {
+      alert(`Error signing in with Google: ${error.message}`);
+    }
+  };
+
+  const signInWithGitHub = async () => {
+    const { error } = await nhost.auth.signIn({
+      provider: 'github'
+    });
+    if (error) {
+      alert(`Error signing in with GitHub: ${error.message}`);
+    }
   };
 </script>
 
@@ -99,6 +128,51 @@
     min-height: 100vh;
     width: 100%;
   }
+
+  .toggle-auth-mode {
+    background: none;
+    border: none;
+    color: var(--color-accent);
+    cursor: pointer;
+    padding: 0.5rem 0;
+    margin-top: 1rem;
+    text-decoration: underline;
+  }
+  .toggle-auth-mode:hover {
+    color: var(--color-primary);
+  }
+
+  .oauth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .oauth-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition-speed) ease;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+  }
+  .oauth-button:hover {
+    background-color: var(--color-input-bg); /* Slightly different hover for distinction */
+  }
+
+  .oauth-button img {
+    width: 20px;
+    height: 20px;
+  }
+
 </style>
 
 {#if $user}
@@ -113,10 +187,34 @@
 {:else}
   <div class="login-page-wrapper">
     <div class="login-container">
-      <h2>Login</h2>
-      <input type="email" placeholder="Email" bind:value={email} />
-      <input type="password" placeholder="Password" bind:value={password} />
-      <button on:click={login}>Login</button>
+      {#if isLoginView}
+        <h2>Login</h2>
+        <input type="email" placeholder="Email" bind:value={email} />
+        <input type="password" placeholder="Password" bind:value={password} />
+        <button on:click={login}>Login</button>
+        <button class="toggle-auth-mode" on:click={() => isLoginView = false}>
+          Don't have an account? Sign up
+        </button>
+      {:else}
+        <h2>Sign Up</h2>
+        <input type="email" placeholder="Email" bind:value={email} />
+        <input type="password" placeholder="Password" bind:value={password} />
+        <button on:click={signup}>Sign Up</button>
+        <button class="toggle-auth-mode" on:click={() => isLoginView = true}>
+          Already have an account? Log in
+        </button>
+      {/if}
+
+      <div class="oauth-buttons">
+        <button class="oauth-button" on:click={signInWithGoogle}>
+          <!-- Add Google icon here if you have one -->
+          <span>Sign in with Google</span>
+        </button>
+        <button class="oauth-button" on:click={signInWithGitHub}>
+          <!-- Add GitHub icon here if you have one -->
+          <span>Sign in with GitHub</span>
+        </button>
+      </div>
     </div>
   </div>
 {/if}
