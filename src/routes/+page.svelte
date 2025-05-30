@@ -589,13 +589,11 @@
 		justify-content: flex-start;
 		padding: 2rem; /* Consistent padding */
 		max-width: 520px; /* Slightly wider for comfort */
-		margin: 2rem auto; /* Add some margin from top/bottom */
-		min-height: calc(100vh - 8rem); /* Adjust min-height considering margin */
+		min-height: calc(100vh - 9rem); /* Adjust min-height considering margin */
 		background: var(--color-bg);
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer shadow */
 		font-family: var(--font-family-sans);
 		color: var(--color-text-primary);
-		border-radius: var(--border-radius-md);
 	}
 
 	select,
