@@ -37,7 +37,7 @@
     background-color: var(--color-surface); /* Use theme variable */
     display: flex;
     flex-direction: column;
-    max-width: 300px;
+    min-width: 300px;
     margin: auto;
     padding: 2rem;
     border: 1px solid var(--color-border); /* Use theme variable */
@@ -91,6 +91,14 @@
 	.theme-toggle:hover {
 		background-color: var(--color-surface);
 	}
+
+  .login-page-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+  }
 </style>
 
 {#if $user}
@@ -103,10 +111,12 @@
     <button on:click={logout}>Logout</button>
   </nav>
 {:else}
-  <div class="login-container">
-    <h2>Login</h2>
-    <input type="email" placeholder="Email" bind:value={email} />
-    <input type="password" placeholder="Password" bind:value={password} />
-    <button on:click={login}>Login</button>
+  <div class="login-page-wrapper">
+    <div class="login-container">
+      <h2>Login</h2>
+      <input type="email" placeholder="Email" bind:value={email} />
+      <input type="password" placeholder="Password" bind:value={password} />
+      <button on:click={login}>Login</button>
+    </div>
   </div>
 {/if}

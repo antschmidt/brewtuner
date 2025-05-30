@@ -58,10 +58,10 @@
 	const selectedMethod = writable<string>('');
 	let newGrinder = '';
 	let newMethod = '';
-	let setting = 0;
+	let setting: number | null = 0;
 	let outcomeText = '';
 	let adjustment: 'coarser' | 'good' | 'finer' = 'good';
-	let grams = 0;
+	let grams: number | null = 0;
 	let tamped = false;
 	let currentProfile: {
 		id: string;
@@ -493,7 +493,22 @@
 				<span class="log-inputs">
 					<div>
 						<span class="dial unit-input">
-							<input id="setting-input" type="number" step="0.1" bind:value={setting} />
+							<input
+								id="setting-input"
+								type="number"
+								step="0.1"
+								bind:value={setting}
+								on:focus={(e) => {
+									if (e.target instanceof HTMLInputElement && parseFloat(e.target.value) === 0) {
+										setting = null;
+									}
+								}}
+								on:blur={(e) => {
+									if (setting === null) {
+										setting = 0;
+									}
+								}}
+							/>
 							<Dial bind:value={setting} min={-30} max={30} step={0.5} />
 						</span>
 					</div>
@@ -501,7 +516,22 @@
 						<label for="grams-input" class="right-setting icon"
 							><img src="/coffee-scale.png" alt="grams" /></label
 						>
-						<input id="grams-input" type="number" min="0" bind:value={grams} />
+						<input
+							id="grams-input"
+							type="number"
+							min="0"
+							bind:value={grams}
+							on:focus={(e) => {
+								if (e.target instanceof HTMLInputElement && parseFloat(e.target.value) === 0) {
+									grams = null;
+								}
+							}}
+							on:blur={(e) => {
+								if (grams === null) {
+									grams = 0;
+								}
+							}}
+						/>
 						<span class="unit">g</span>
 					</div>
 				</span>
