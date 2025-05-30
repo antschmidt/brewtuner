@@ -846,7 +846,7 @@
 			padding: 1.5rem 1rem; /* Adjusted padding for mobile */
 			margin: 0;
 			border-radius: 0;
-			min-height: calc(100vh - 12rem);
+			min-height: calc(100vh - 8rem);
 		}
 	}
 </style>
