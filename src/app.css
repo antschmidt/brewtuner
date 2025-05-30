@@ -1,0 +1,94 @@
+\
+/* Import modern typefaces */
+@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;700&family=Inter:wght@400;500;700&family=Roboto+Slab:wght@300;400;700&display=swap');
+
+:root {
+	--color-bg: #F8F9FA; /* Lighter, cleaner background */
+	--color-surface: #FFFFFF; /* For cards/modal elements */
+	--color-primary: #343A40; /* Darker primary for text and important elements */
+	--color-accent: #A57E65; /* Earthy, sophisticated accent */
+	--color-cta: #4A5568; /* Muted Call to Action */
+	--color-text-primary: #212529; /* Main text color */
+	--color-text-secondary: #6C757D; /* Lighter text for secondary info */
+	--color-input-bg: #FFFFFF;
+	--color-border: #DEE2E6; /* Subtle borders */
+	--border-radius-sm: 4px;
+	--border-radius-md: 8px;
+	--transition-speed: 0.2s;
+	--font-family-sans: 'Inter', sans-serif;
+	--font-family-serif: 'Roboto Slab', serif; /* For headings or accents */
+	--font-family-display: 'Clash Display', sans-serif; /* For special display text */
+	--color-bg-icon: transparent;
+}
+
+body.dark-mode {
+	--color-bg: #1A202C; /* Dark background */
+	--color-surface: #2D3748; /* Dark surface for cards/modals */
+	--color-primary: #E2E8F0; /* Light primary for text in dark mode */
+	--color-accent: #B9957E; /* Adjusted accent for dark mode */
+	--color-cta: #718096; /* Adjusted CTA for dark mode */
+	--color-text-primary: #dadbb7; /* Main text color for dark mode */
+	--color-text-secondary: #A0AEC0; /* Lighter text for secondary info in dark mode */
+	--color-input-bg: #2D3748; /* Dark input background */
+	--color-border: #4A5568; /* Adjusted border for dark mode */
+	--color-bg-icon: #a0aec03d; /* Subtle background for icons in dark mode */
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-sans);
+  transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+  margin: 0; /* Ensure no default body margin */
+}
+
+/* Generic input/select/textarea styling using theme variables */
+select,
+input[type='text'],
+input[type='number'],
+input[type='email'], /* Added email type */
+input[type='password'], /* Added password type */
+textarea {
+	width: 100%;
+	padding: 0.85rem 1rem;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-sm);
+	background: var(--color-input-bg);
+	font-family: inherit;
+	font-size: 0.95rem;
+	color: var(--color-text-primary);
+	transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+	box-sizing: border-box; /* Ensure padding doesn't increase width */
+}
+
+select:focus,
+input[type='text']:focus,
+input[type='number']:focus,
+input[type='email']:focus,
+input[type='password']:focus,
+textarea:focus {
+	outline: none;
+	border-color: var(--color-accent);
+	box-shadow: 0 0 0 2px rgba(var(--color-accent), 0.2); /* Focus ring */
+}
+
+button {
+	padding: 0.75rem 1.25rem; /* Standardized padding */
+	border: none;
+	background: var(--color-cta);
+	color: var(--color-surface); /* Text color that contrasts with CTA */
+	border-radius: var(--border-radius-sm);
+	cursor: pointer;
+	font-family: var(--font-family-sans);
+	font-weight: 500;
+	transition: background-color var(--transition-speed) ease;
+}
+
+button:hover {
+	background: var(--color-primary); /* Darken/change on hover */
+}
+
+button:disabled {
+	background-color: var(--color-text-secondary);
+	cursor: not-allowed;
+}
