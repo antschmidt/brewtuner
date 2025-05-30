@@ -353,7 +353,7 @@
 	function handleLogUpdated(event: CustomEvent<GrindLog>) {
 		const updatedLog = event.detail;
 		// Update the local 'logs' array to be reactive
-		logs = logs.map(log => (log.id === updatedLog.id ? updatedLog : log));
+		logs = logs.map((log) => (log.id === updatedLog.id ? updatedLog : log));
 	}
 </script>
 
@@ -368,15 +368,6 @@
 	{/if}
 	<Selector show={showRoasterSelector} expandTransition={fly} expandParams={{ duration: 300 }}>
 		<!-- expanded roaster selection -->
-		<!-- <div class="new-input">
-			<img src="/roaster.png" width="64px" alt="Roaster" class="icon" />
-			<select id="roaster" bind:value={$selectedRoaster}>
-				<option value="" disabled>Select Roaster</option>
-				{#each $roasters as r}
-					<option value={r.id}>{r.name}</option>
-				{/each}
-			</select>
-		</div> -->
 		<div class="new-input">
 			<input type="text" placeholder="New roaster name" bind:value={newRoaster} />
 			<button on:click={createRoaster} disabled={!newRoaster.trim()}>Save</button>
@@ -401,7 +392,9 @@
 					<option value={r.id}>{r.name}</option>
 				{/each}
 			</select>
-			<img src="/roaster.png" width="64px" alt="Roaster" class="icon" />
+			<span class="icon">
+				<img src="/roaster.png" alt="Roaster" />
+			</span>
 			<span>{$roasters.find((r) => r.id === $selectedRoaster)?.name || `Select a roaster`}</span>
 		</div>
 	</Selector>
@@ -432,7 +425,7 @@
 						<option value={b.id}>{b.name}</option>
 					{/each}
 				</select>
-				<img width="64px" src="/bag-of-coffee.png" alt="Bean" class="icon" />
+				<span class="icon"><img src="/bag-of-coffee.png" alt="Bean" /></span>
 				<span>{$selectedBean?.name || `Select a bean`}</span>
 			</div>
 		</Selector>
@@ -463,7 +456,7 @@
 						<option value={g.id}>{g.name}</option>
 					{/each}
 				</select>
-				<img src="/grinder.png" height="64px" alt="Grinder" class="icon" />
+				<span class="icon"><img src="/grinder.png" alt="Grinder" /></span>
 				<span>{$selectedGrinderObj?.name || 'Select a grinder'}</span>
 			</div>
 		</Selector>
@@ -492,7 +485,7 @@
 							<option value={m.id}>{m.name}</option>
 						{/each}
 					</select>
-					<img src="/method.png" width="64px" alt="Method" class="icon" />
+					<span class="icon"><img src="/method.png" alt="Method" /></span>
 					<span id="selected-method">{$selectedMethodObj?.name || `Select a method`}</span>
 				</div>
 			</Selector>
@@ -505,8 +498,8 @@
 						</span>
 					</div>
 					<div class="unit-input">
-						<label for="grams-input" class="right-setting"
-							><img height="64px" src="/coffee-scale.png" alt="grams" /></label
+						<label for="grams-input" class="right-setting icon"
+							><img src="/coffee-scale.png" alt="grams" /></label
 						>
 						<input id="grams-input" type="number" min="0" bind:value={grams} />
 						<span class="unit">g</span>
@@ -519,7 +512,9 @@
 							<option value="good">Good</option>
 							<option value="finer">Finer</option>
 						</select>
-						<img alt="adjustment" height="64px" src="idea.png" />
+						<label for="adjustment-select" class="icon">
+							<img alt="adjustment" src="idea.png" />
+						</label>
 					</div>
 
 					<div class="tamped">
@@ -537,195 +532,304 @@
 					></textarea>
 				</span>
 				<button class="submit" on:click|preventDefault={submitLog} type="button">Submit</button>
-
-				<LogDisplay {logs} loading={$loadingLogs} show={$showLogs} toggle={toggleLogs} on:logupdated={handleLogUpdated} />
+				<LogDisplay
+					{logs}
+					loading={$loadingLogs}
+					show={$showLogs}
+					toggle={toggleLogs}
+					on:logupdated={handleLogUpdated}
+				/>
 			{/if}
 		{/if}
 	{/if}
 </div>
 
 <style>
-	.container {
-		display: flex;
-		min-height: 100vh;
-		flex-direction: column;
-		gap: 1.8rem;
-		justify-content: space-evenly;
-		padding: 2rem 1rem 1rem 1rem;
-		margin: 0 auto;
-		background: rgb(167, 94, 42);
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-		font-family: system-ui, sans-serif;
-	}
-	select {
-		height: 2.6rem;
-		margin-bottom: 1rem;
-		color: black;
-	}
-	select,
-	input {
-		width: 93%;
-		padding: 0.5rem;
-		border: 1px solid #ccc;
-		border-radius: 4px;
-		height: 2rem;
-		background: rgb(120, 23, 23);
+	/* Import modern typefaces */
+	@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;700&family=Inter:wght@400;500;700&family=Roboto+Slab:wght@300;400;700&display=swap');
+
+	:global(:root) {
+		--color-bg: #f8f9fa; /* Lighter, cleaner background */
+		--color-surface: #ffffff; /* For cards/modal elements */
+		--color-primary: #343a40; /* Darker primary for text and important elements */
+		--color-accent: #a57e65; /* Earthy, sophisticated accent */
+		--color-cta: #4a5568; /* Muted Call to Action */
+		--color-text-primary: #212529; /* Main text color */
+		--color-text-secondary: #6c757d; /* Lighter text for secondary info */
+		--color-bg-icon: transparent;
+		--color-input-bg: #ffffff;
+		--color-border: #dee2e6; /* Subtle borders */
+		--border-radius-sm: 4px;
+		--border-radius-md: 8px;
+		--transition-speed: 0.2s;
+		--font-family-sans: \'Inter\', sans-serif;
+		--font-family-serif: \'Roboto Slab\', serif; /* For headings or accents */
+		--font-family-display: \'Clash Display\', sans-serif; /* For special display text */
+		--icon-invert: 0%;
 	}
 
-	.new-input input {
-		width: 100%;
+	:global(body.dark-mode) {
+		--color-bg: #1a202c; /* Dark background */
+		--color-surface: #2d3748; /* Dark surface for cards/modals */
+		--color-primary: #e2e8f0; /* Light primary for text in dark mode */
+		--color-accent: #b9957e; /* Adjusted accent for dark mode */
+		--color-cta: #718096; /* Adjusted CTA for dark mode */
+		--color-text-primary: #dadbb7; /* Main text color for dark mode */
+		--color-text-secondary: #a0aec0; /* Lighter text for secondary info in dark mode */
+		--color-bg-icon: #a0aec03d; /* Subtle background for icons in dark mode */
+		--color-input-bg: #2d3748; /* Dark input background */
+		--color-border: #4a5568; /* Adjusted border for dark mode */
+		--icon-invert: 100%; /* Invert icons in dark mode */
 	}
-	.dial {
+
+	.container {
 		display: flex;
-		gap: 1rem;
+		flex-direction: column;
+		gap: 2rem; /* Increased gap for better separation */
+		justify-content: flex-start;
+		padding: 2rem; /* Consistent padding */
+		max-width: 520px; /* Slightly wider for comfort */
+		margin: 2rem auto; /* Add some margin from top/bottom */
+		min-height: calc(100vh - 8rem); /* Adjust min-height considering margin */
+		background: var(--color-bg);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer shadow */
+		font-family: var(--font-family-sans);
+		color: var(--color-text-primary);
+		border-radius: var(--border-radius-md);
 	}
+
+	select,
+	input[type='text'],
+	input[type='number'],
 	textarea {
 		width: 100%;
-		padding: 0.5rem;
-		border: 1px solid #ccc;
-		border-radius: 4px;
-		font-size: 1.2rem;
-		resize: none;
-		background-color: rgba(222, 184, 135, 0.678);
+		padding: 0.85rem 1rem; /* Increased padding */
+		border: 1px solid var(--color-border);
+		border-radius: var(--border-radius-sm);
+		background: var(--color-input-bg);
+		font-family: inherit;
+		font-size: 0.95rem; /* Slightly larger font */
+		color: var(--color-text-primary);
+		transition:
+			border-color var(--transition-speed) ease,
+			box-shadow var(--transition-speed) ease;
+	}
+
+	select:focus,
+	input[type='text']:focus,
+	input[type='number']:focus,
+	textarea:focus {
+		outline: none;
+		border-color: var(--color-accent);
+		box-shadow: 0 0 0 2px rgba(var(--color-accent), 0.2); /* Focus ring */
+	}
+
+	textarea {
+		resize: vertical; /* Allow vertical resize */
+		min-height: 80px;
+	}
+
+	.new-input {
+		display: flex;
+		gap: 0.75rem; /* Slightly increased gap */
+		margin-top: 0.5rem;
+		align-items: center; /* Align items vertically */
+	}
+
+	.new-input input[type='text'] {
+		flex-grow: 1; /* Allow input to take available space */
 	}
 
 	.new-input button {
-		width: 30%;
-		margin-right: 1.6rem;
-		background: rgb(37, 30, 20);
+		flex-shrink: 0;
+		background: var(--color-cta);
 		color: white;
 		border: none;
-		border-radius: 4px;
+		border-radius: var(--border-radius-sm);
+		padding: 0.85rem 1.25rem; /* Matched padding with inputs */
+		font-weight: 500;
 		cursor: pointer;
-	}
-	.new-input {
-		display: flex;
-		justify-self: center;
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-		width: 100%;
+		transition: background-color var(--transition-speed) ease;
 	}
 
-	.right-setting {
-		margin-right: 0.5rem;
-		font-size: 1rem;
+	.new-input button:hover {
+		background-color: var(--color-primary); /* Darken on hover */
+	}
+	.new-input button:disabled {
+		background-color: var(--color-text-secondary);
+		cursor: not-allowed;
 	}
 
-	button {
-		border: none;
-		background: transparent;
-		border-radius: 4px;
-		cursor: pointer;
-	}
-	p {
-		margin: 0.5rem 0;
-	}
 	.summary-button {
 		display: flex;
-		width: 100%;
-		font: initial;
-		font-family: serif;
-		font-variant: small-caps;
-		font-size: xx-large;
 		align-items: center;
-		justify-content: space-around;
-		gap: 0.5rem;
-		background: transparent;
-		border: none;
+		justify-content: flex-start; /* Align to the left */
+		gap: 1rem; /* Increased gap */
+		font-family: var(--font-family-serif); /* Using serif for a touch of class */
+		font-size: 1.1rem; /* Adjusted size */
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--border-radius-md);
+		padding: 0.75rem 1rem;
 		cursor: pointer;
+		width: 100%;
+		text-align: left;
+		transition:
+			border-color var(--transition-speed) ease,
+			background-color var(--transition-speed) ease;
 	}
+	.summary-button:hover {
+		border-color: var(--color-accent);
+		background-color: #fdfdfd3d;
+	}
+	.summary-button .icon img {
+		/* Ensure icon class is used on img for this */
+		/* height: 48px; */
+		flex-shrink: 0;
+		align-items: center;
+	}
+
+	.icon {
+		height: 48px;
+		width: 48px;
+		display: flex;
+		justify-content: space-evenly;
+		/* background-color: var(--color-bg-icon); */
+		padding: 4px;
+		border-radius: var(--border-radius-sm);
+	}
+
+	.icon img {
+		filter: invert(var(--icon-invert));
+	}
+
+	.summary-button span {
+		color: var(--color-text-primary);
+		font-weight: 400;
+	}
+
 	.log-section {
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: 0.5rem; /* Reduced gap */
+		padding: 1rem;
+		background: var(--color-surface);
+		border-radius: var(--border-radius-md);
+		border: 1px solid var(--color-border);
+	}
+	.log-section p {
+		margin: 0;
+		font-size: 0.9rem;
+		color: var(--color-text-secondary);
+	}
+	.log-section strong {
+		color: var(--color-text-primary);
+		font-weight: 500;
 	}
 
 	.log-inputs {
 		display: flex;
-		justify-content: space-around;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 1.5rem; /* Increased gap */
+		align-items: center; /* Align items better */
+	}
+
+	.unit-input,
+	.dial {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+	.unit-input label img {
+		height: 48px; /* Standardized icon size */
+	}
+	.unit-input input[type='number'] {
+		width: 3rem; /* Fixed width for grams/setting */
+		text-align: right;
+	}
+	.unit-input .unit {
+		font-size: 0.9rem;
+		color: var(--color-text-secondary);
 	}
 
 	#adjustment-select {
-		background-color: #ffffff1a;
-		margin: 1rem 0;
-		border: 0px;
-		height: 3rem;
-	}
-
-	#setting-input,
-	#grams-input {
-		width: 3rem;
-		background-color: #ffffff1a;
-		border: 0px;
-		height: 2rem;
-		width: 2rem;
+		width: auto;
+		padding: 0.85rem 1rem; /* Matched padding */
+		min-width: 150px; /* Ensure it's not too small */
 	}
 
 	.tamped {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.75rem;
+	}
+	.tamped img.icon {
+		/* Ensure icon class is used on img for this */
+		height: 48px; /* Standardized icon size */
 	}
 
-	.tamped .icon {
-		width: 64px;
-		height: 64px;
-	}
-
-	/* Custom checkbox styling */
 	.tamped input[type='checkbox'] {
-		-webkit-appearance: none;
 		appearance: none;
-		width: 1.6rem;
-		height: 1.6rem;
-		border: 1px solid #000;
-		background: transparent;
+		width: 1.5rem; /* Slightly smaller */
+		height: 1.5rem;
+		border: 2px solid var(--color-text-secondary);
+		border-radius: var(--border-radius-sm);
 		position: relative;
 		cursor: pointer;
-		margin: 0;
+		transition: border-color var(--transition-speed) ease;
 	}
+	.tamped input[type='checkbox']:hover {
+		border-color: var(--color-accent);
+	}
+
 	.tamped input[type='checkbox']::after {
 		content: '';
 		position: absolute;
-		top: 1px;
-		left: 8px;
-		width: 0.4rem;
-		height: 1rem;
-		border: solid #000;
-		border-width: 0 2px 2px 0;
-		transform: rotate(45deg);
+		top: 50%;
+		left: 50%;
+		width: 0.35rem; /* Adjusted checkmark */
+		height: 0.75rem;
+		border: solid var(--color-accent);
+		border-width: 0 3px 3px 0;
+		transform: translate(-50%, -60%) rotate(45deg); /* Better centering */
 		opacity: 0;
+		transition: opacity var(--transition-speed) ease;
+	}
+
+	.tamped input[type='checkbox']:checked {
+		border-color: var(--color-accent);
 	}
 	.tamped input[type='checkbox']:checked::after {
 		opacity: 1;
 	}
 
 	.submit {
-		background: black;
+		background: var(--color-accent);
 		color: white;
-		width: 50%;
-		align-self: center;
-		padding: 0.75rem 1.5rem;
+		padding: 0.9rem 2.5rem; /* Larger padding for emphasis */
+		font-size: 1.1rem; /* Adjusted font size */
+		font-weight: 500; /* Medium weight */
+		font-family: var(--font-family-sans);
 		border: none;
-		border-radius: 4px;
+		border-radius: var(--border-radius-sm);
 		cursor: pointer;
-		font-size: 2rem;
-		margin-top: 1rem;
+		align-self: center;
+		margin-top: 1rem; /* Added margin */
+		transition:
+			background-color var(--transition-speed) ease,
+			transform var(--transition-speed) ease;
 	}
 
-	.unit {
-		margin-left: 0.5rem;
-		font-size: 1rem;
+	.submit:hover {
+		background-color: #936a53; /* Darken accent on hover */
+		transform: scale(1.02); /* Subtle scale effect */
 	}
 
-	.unit-input {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
+	/* Ensure summary select overlay is still functional */
 	.summary-select-wrapper {
 		position: relative;
+		width: 100%; /* Ensure it takes full width of its parent */
 	}
 	.summary-select-wrapper select {
 		position: absolute;
@@ -739,11 +843,10 @@
 
 	@media (max-width: 600px) {
 		.container {
-			max-width: 100%;
+			padding: 1.5rem 1rem; /* Adjusted padding for mobile */
 			margin: 0;
-			padding: 2rem 1rem 1rem 1rem;
 			border-radius: 0;
-			min-height: 100vh;
+			min-height: calc(100vh - 12rem);
 		}
 	}
 </style>
