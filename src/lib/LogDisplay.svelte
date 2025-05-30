@@ -89,7 +89,7 @@
                             </div>
                             <div class="log-field edit-field">
                                 <label for="edit-grams-{log.id}">Grams:</label>
-                                <input id="edit-grams-{log.id}" type="number" step="0.1" bind:value={currentEditValues.grams} />g
+                                <span><input id="edit-grams-{log.id}" type="number" step="0.1" bind:value={currentEditValues.grams} />g</span>
                             </div>
                             <div class="log-field edit-field tamped-edit">
                                 <label for="edit-tamped-{log.id}">Tamped:</label>
@@ -240,6 +240,9 @@
         flex-basis: 45%; /* Adjust basis for two items per row */
         min-width: 150px;
     }
+	.edit-field span {
+		display: flex;
+	}	
     .edit-field.outcome-edit {
         flex-basis: 100%; /* Full width for textarea */
     }
@@ -258,6 +261,12 @@
         /* color: #333; */ /* Already white from global */
         font-size: 0.9rem;
     }
+
+	.edit-field input[type="number"] {
+		text-align: right;
+		max-width: 4rem; /* Limit width for number inputs */
+	}
+
     .edit-field input[type="checkbox"] {
        width: auto;
        margin-top: 0.25rem;
