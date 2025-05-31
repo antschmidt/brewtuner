@@ -8,5 +8,8 @@ export const nhost = new NhostClient({
   region: PUBLIC_NHOST_REGION,
   clientStorage: isBrowser ? localStorage : undefined,
   clientStorageType: 'web',
-  autoLogin: true
+  autoLogin: true,
+  authUrl: isBrowser ? 'https://auth.brewtuner.app/v1' : undefined,
+  graphqlUrl: isBrowser ? 'https://graphql.brewtuner.app/v1/graphql' : undefined,
+  storageUrl: isBrowser ? 'https://storage.brewtuner.app/v1' : undefined
 });

@@ -4,7 +4,6 @@
   import { writable } from 'svelte/store';
   import { theme, toggleTheme } from '$lib/themeStore'; // Import theme store and toggle function
 
-
   const user = writable(nhost.auth.getUser());
 
   onMount(() => {
@@ -38,8 +37,8 @@
       alert(error.message);
       return;
     }
-    alert('Signup successful! Please check your email to verify your account.'); 
-    isLoginView = true; 
+    alert('Signup successful! Please check your email to verify your account.');
+    isLoginView = true;
   };
 
   const signInWithGoogle = async () => {
@@ -57,6 +56,69 @@
     });
     if (error) {
       alert(`Error signing in with GitHub: ${error.message}`);
+    }
+  };
+
+  const sendMagicLink = async () => {
+    if (!email) {
+      alert('Please enter your email address.');
+      return;
+    }
+    // Corrected based on Nhost documentation: use signIn with only email for magic link
+    const { error } = await nhost.auth.signIn({ email }); // `session` is not directly returned here for magic link initiation
+    if (error) {
+      alert(`Error sending magic link: ${error.message}`);
+    } else {
+      // If signIn with email only is successful, Nhost sends the magic link.
+      // The session will typically become active after the user clicks the link in their email.
+      // onAuthStateChanged will handle the session update.
+      alert('Magic link sent! Check your email to complete the sign-in process.');
+    }
+  };
+
+  const signUpWithSecurityKey = async () => {
+    if (!email) {
+      alert('Please enter your email address to register with a security key.');
+      return;
+    }
+    // Using the method from the provided documentation
+    const { error, session } = await nhost.auth.signUp({
+      email,
+      securityKey: true
+    });
+
+    if (error) {
+      alert(`Error signing up with security key: ${error.message}`);
+    } else {
+      // Nhost handles the redirect and flow for WebAuthn
+      alert('Follow the browser prompts to register your security key. You might be asked to verify your email first if this is a new account.');
+      // 'session' will be populated on successful sign-up and key registration
+      if (session) {
+        user.set(session.user);
+      }
+    }
+  };
+
+  const signInWithSecurityKey = async () => {
+    if (!email) {
+      alert('Please enter your email address to sign in with a security key.');
+      return;
+    }
+    // Using the method from the provided documentation
+    const { error, session } = await nhost.auth.signIn({
+      email,
+      securityKey: true
+    });
+
+    if (error) {
+      alert(`Error signing in with security key: ${error.message}`);
+      // Common errors: user not found, no security key registered for this user, or user cancelled.
+    } else {
+      // On success, Nhost handles the rest, and onAuthStateChanged will update the UI.
+      // 'session' will be populated on successful sign-in
+      if (session) {
+        user.set(session.user);
+      }
     }
   };
 </script>
@@ -151,6 +213,15 @@
     border-top: 1px solid var(--color-border);
   }
 
+  .passwordless-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border); /* Optional: visual separator */
+  }
+
   .oauth-button {
     display: flex;
     align-items: center;
@@ -192,6 +263,10 @@
         <input type="email" placeholder="Email" bind:value={email} />
         <input type="password" placeholder="Password" bind:value={password} />
         <button on:click={login}>Login</button>
+        <div class="passwordless-options">
+          <button class="oauth-button" on:click={signInWithSecurityKey}>Sign in with Security Key</button>
+          <button class="oauth-button" on:click={sendMagicLink}>Send Magic Link</button>
+        </div>
         <button class="toggle-auth-mode" on:click={() => isLoginView = false}>
           Don't have an account? Sign up
         </button>
@@ -200,6 +275,11 @@
         <input type="email" placeholder="Email" bind:value={email} />
         <input type="password" placeholder="Password" bind:value={password} />
         <button on:click={signup}>Sign Up</button>
+        <div class="passwordless-options">
+          <button class="oauth-button" on:click={signUpWithSecurityKey}>Sign up with Security Key</button>
+           <!-- Magic link is typically for sign-in, but can be initiated from signup if user already has an account -->
+          <button class="oauth-button" on:click={sendMagicLink}>Send Magic Link (if account exists)</button>
+        </div>
         <button class="toggle-auth-mode" on:click={() => isLoginView = true}>
           Already have an account? Log in
         </button>
