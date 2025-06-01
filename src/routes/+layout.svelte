@@ -3,7 +3,7 @@
   import { nhost } from '$lib/nhostClient';
   import { writable } from 'svelte/store';
   import { theme, toggleTheme } from '$lib/themeStore'; // Import theme store and toggle function
-  import { page } from '$app/stores'; // Import the page store - REVERTED
+  import { page } from '$app/state'; // Import page from $app/state
 
   const user = writable(nhost.auth.getUser());
 
@@ -273,7 +273,7 @@
 	</button>
     <button on:click={logout}>Logout</button>
   </nav>
-{:else if $page.url.pathname === '/privacy' || $page.url.pathname === '/terms'}
+{:else if page.url.pathname === '/privacy' || page.url.pathname === '/terms'}  <!-- Removed $ from $page -->
   <slot />
 {:else}
   <div class="login-page-wrapper">
