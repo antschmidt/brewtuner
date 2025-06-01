@@ -8,6 +8,7 @@ node_modules
 /.svelte-kit
 /build
 .nhost
+/nhost/nhost.toml
 
 # OS
 .DS_Store
