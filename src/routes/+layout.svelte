@@ -3,6 +3,7 @@
   import { nhost } from '$lib/nhostClient';
   import { writable } from 'svelte/store';
   import { theme, toggleTheme } from '$lib/themeStore'; // Import theme store and toggle function
+  import { page } from '$app/stores'; // Import the page store - REVERTED
 
   const user = writable(nhost.auth.getUser());
 
@@ -244,6 +245,23 @@
     height: 20px;
   }
 
+  .legal-links {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.875rem; /* 14px */
+  }
+
+  .legal-links a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    margin: 0 0.5rem;
+  }
+
+  .legal-links a:hover {
+    text-decoration: underline;
+    color: var(--color-primary);
+  }
+
 </style>
 
 {#if $user}
@@ -255,6 +273,8 @@
 	</button>
     <button on:click={logout}>Logout</button>
   </nav>
+{:else if $page.url.pathname === '/privacy' || $page.url.pathname === '/terms'}
+  <slot />
 {:else}
   <div class="login-page-wrapper">
     <div class="login-container">
@@ -295,6 +315,12 @@
           <span>Sign in with GitHub</span>
         </button>
       </div>
+
+      <div class="legal-links">
+        <a href="/terms">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+      </div>
+
     </div>
   </div>
 {/if}
