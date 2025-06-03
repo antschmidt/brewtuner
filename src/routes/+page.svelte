@@ -576,95 +576,63 @@
 
 <style>
 	/* Import modern typefaces */
-	@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;700&family=Inter:wght@400;500;700&family=Roboto+Slab:wght@300;400;700&display=swap');
+	@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;700&family=Inter:wght@400;500;700&display=swap');
 
 	:global(:root) {
-		--color-bg: #f8f9fa; /* Lighter, cleaner background */
-		--color-surface: #ffffff; /* For cards/modal elements */
-		--color-primary: #343a40; /* Darker primary for text and important elements */
-		--color-accent: #a57e65; /* Earthy, sophisticated accent */
-		--color-cta: #4a5568; /* Muted Call to Action */
-		--color-text-primary: #212529; /* Main text color */
-		--color-text-secondary: #6c757d; /* Lighter text for secondary info */
-		--color-bg-icon: transparent;
-		--color-input-bg: #ffffff;
-		--color-border: #dee2e6; /* Subtle borders */
-		--border-radius-sm: 4px;
-		--border-radius-md: 8px;
+		--color-bg: #F4F1EE;
+		--color-accent: #C67B5C;
+		--color-cta: #4B3F3F;
+		--color-text: #1C1C1C;
+		--color-secondary: #5A5A5A;
+		--color-input-bg: #F8F5F2;
+		--border-radius: 8px;
 		--transition-speed: 0.2s;
-		--font-family-sans: \'Inter\', sans-serif;
-		--font-family-serif: \'Roboto Slab\', serif; /* For headings or accents */
-		--font-family-display: \'Clash Display\', sans-serif; /* For special display text */
-		--icon-invert: 0%;
-	}
-
-	:global(body.dark-mode) {
-		--color-bg: #1a202c; /* Dark background */
-		--color-surface: #2d3748; /* Dark surface for cards/modals */
-		--color-primary: #e2e8f0; /* Light primary for text in dark mode */
-		--color-accent: #b9957e; /* Adjusted accent for dark mode */
-		--color-cta: #718096; /* Adjusted CTA for dark mode */
-		--color-text-primary: #dadbb7; /* Main text color for dark mode */
-		--color-text-secondary: #a0aec0; /* Lighter text for secondary info in dark mode */
-		--color-bg-icon: #a0aec03d; /* Subtle background for icons in dark mode */
-		--color-input-bg: #2d3748; /* Dark input background */
-		--color-border: #4a5568; /* Adjusted border for dark mode */
-		--icon-invert: 100%; /* Invert icons in dark mode */
 	}
 
 	.container {
 		display: flex;
 		flex-direction: column;
-		gap: 2rem; /* Increased gap for better separation */
-		justify-content: flex-start;
-		padding: 2rem; /* Consistent padding */
-		min-height: calc(100vh - 9rem); /* Adjust min-height considering margin */
+		gap: 1.8rem;
+		justify-content: space-evenly;
+		padding: 2rem 1rem;
+		max-width: 480px;
+		margin: 0 auto;
+		min-height: 100vh;
 		background: var(--color-bg);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer shadow */
-		font-family: var(--font-family-sans);
-		color: var(--color-text-primary);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		font-family: 'Inter', sans-serif;
+		color: var(--color-text);
+		border-radius: var(--border-radius);
 	}
 
 	select,
-	input[type='text'],
-	input[type='number'],
+	input,
 	textarea {
 		width: 100%;
-		padding: 0.85rem 1rem; /* Increased padding */
-		border: 1px solid var(--color-border);
-		border-radius: var(--border-radius-sm);
+		padding: 0.75rem;
+		border: 1px solid var(--color-secondary);
+		border-radius: var(--border-radius);
 		background: var(--color-input-bg);
 		font-family: inherit;
-		font-size: 0.95rem; /* Slightly larger font */
-		color: var(--color-text-primary);
-		transition:
-			border-color var(--transition-speed) ease,
-			box-shadow var(--transition-speed) ease;
+		color: var(--color-text);
+		transition: border-color var(--transition-speed) ease;
 	}
 
-	select:focus,
-	input[type='text']:focus,
-	input[type='number']:focus,
-	textarea:focus {
-		outline: none;
+	select:hover,
+	input:hover,
+	textarea:hover {
 		border-color: var(--color-accent);
-		box-shadow: 0 0 0 2px rgba(var(--color-accent), 0.2); /* Focus ring */
 	}
 
 	textarea {
-		resize: vertical; /* Allow vertical resize */
-		min-height: 80px;
+		resize: none;
+		font-size: 1rem;
 	}
 
 	.new-input {
 		display: flex;
-		gap: 0.75rem; /* Slightly increased gap */
+		gap: 0.5rem;
 		margin-top: 0.5rem;
-		align-items: center; /* Align items vertically */
-	}
-
-	.new-input input[type='text'] {
-		flex-grow: 1; /* Allow input to take available space */
 	}
 
 	.new-input button {
@@ -672,32 +640,27 @@
 		background: var(--color-cta);
 		color: white;
 		border: none;
-		border-radius: var(--border-radius-sm);
-		padding: 0.85rem 1.25rem; /* Matched padding with inputs */
+		border-radius: var(--border-radius);
+		padding: 0 1rem;
 		font-weight: 500;
 		cursor: pointer;
-		transition: background-color var(--transition-speed) ease;
+		transition: opacity var(--transition-speed) ease;
 	}
 
 	.new-input button:hover {
-		background-color: var(--color-primary); /* Darken on hover */
-	}
-	.new-input button:disabled {
-		background-color: var(--color-text-secondary);
-		cursor: not-allowed;
+		opacity: 0.9;
 	}
 
 	.summary-button {
 		display: flex;
 		align-items: center;
-		justify-content: flex-start; /* Align to the left */
-		gap: 1rem; /* Increased gap */
-		font-family: var(--font-family-serif); /* Using serif for a touch of class */
-		font-size: 1.1rem; /* Adjusted size */
-		background: var(--color-surface);
-		border: 1px solid var(--color-border);
-		border-radius: var(--border-radius-md);
-		padding: 0.75rem 1rem;
+		justify-content: space-around;
+		gap: 0.5rem;
+		font-family: 'Clash Display', serif;
+		font-variant: small-caps;
+		font-size: 1.25rem;
+		background: transparent;
+		border: none;
 		cursor: pointer;
 		width: 100%;
 		text-align: left;
@@ -705,85 +668,29 @@
 			border-color var(--transition-speed) ease,
 			background-color var(--transition-speed) ease;
 	}
-	.summary-button:hover {
-		border-color: var(--color-accent);
-		background-color: #fdfdfd3d;
-	}
-	.summary-button .icon img {
-		/* Ensure icon class is used on img for this */
-		/* height: 48px; */
-		flex-shrink: 0;
-		align-items: center;
-	}
-
-	.icon {
-		height: 48px;
-		width: 48px;
-		display: flex;
-		justify-content: space-evenly;
-		/* background-color: var(--color-bg-icon); */
-		padding: 4px;
-		border-radius: var(--border-radius-sm);
-	}
-
-	.icon img {
-		filter: invert(var(--icon-invert));
-	}
-
-	.summary-button span {
-		color: var(--color-text-primary);
-		font-weight: 400;
-	}
 
 	.log-section {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem; /* Reduced gap */
-		padding: 1rem;
-		background: var(--color-surface);
-		border-radius: var(--border-radius-md);
-		border: 1px solid var(--color-border);
-	}
-	.log-section p {
-		margin: 0;
-		font-size: 0.9rem;
-		color: var(--color-text-secondary);
-	}
-	.log-section strong {
-		color: var(--color-text-primary);
-		font-weight: 500;
+		gap: 1rem;
 	}
 
 	.log-inputs {
 		display: flex;
 		flex-wrap: wrap;
-		justify-content: space-between;
-		gap: 1.5rem; /* Increased gap */
-		align-items: center; /* Align items better */
+		gap: 1rem;
 	}
 
 	.unit-input,
 	.dial {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-	}
-	.unit-input label img {
-		height: 48px; /* Standardized icon size */
-	}
-	.unit-input input[type='number'] {
-		width: 3rem; /* Fixed width for grams/setting */
-		text-align: right;
-	}
-	.unit-input .unit {
-		font-size: 0.9rem;
-		color: var(--color-text-secondary);
+		gap: 0.5rem;
 	}
 
 	#adjustment-select {
 		width: auto;
-		padding: 0.85rem 1rem; /* Matched padding */
-		min-width: 150px; /* Ensure it's not too small */
+		padding: 0.5rem 1rem;
 	}
 
 	.tamped {
@@ -798,82 +705,53 @@
 
 	.tamped input[type='checkbox'] {
 		appearance: none;
-		width: 1.5rem; /* Slightly smaller */
-		height: 1.5rem;
-		border: 2px solid var(--color-text-secondary);
-		border-radius: var(--border-radius-sm);
+		width: 1.6rem;
+		height: 1.6rem;
+		border: 2px solid var(--color-text);
+		border-radius: 4px;
 		position: relative;
 		cursor: pointer;
-		transition: border-color var(--transition-speed) ease;
-	}
-	.tamped input[type='checkbox']:hover {
-		border-color: var(--color-accent);
 	}
 
 	.tamped input[type='checkbox']::after {
 		content: '';
 		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 0.35rem; /* Adjusted checkmark */
-		height: 0.75rem;
-		border: solid var(--color-accent);
-		border-width: 0 3px 3px 0;
-		transform: translate(-50%, -60%) rotate(45deg); /* Better centering */
+		top: 2px;
+		left: 5px;
+		width: 0.4rem;
+		height: 1rem;
+		border: solid var(--color-text);
+		border-width: 0 2px 2px 0;
+		transform: rotate(45deg);
 		opacity: 0;
 		transition: opacity var(--transition-speed) ease;
 	}
 
-	.tamped input[type='checkbox']:checked {
-		border-color: var(--color-accent);
-	}
 	.tamped input[type='checkbox']:checked::after {
 		opacity: 1;
 	}
 
 	.submit {
-		background: var(--color-accent);
+		background: var(--color-cta);
 		color: white;
-		padding: 0.9rem 2.5rem; /* Larger padding for emphasis */
-		font-size: 1.1rem; /* Adjusted font size */
-		font-weight: 500; /* Medium weight */
-		font-family: var(--font-family-sans);
+		padding: 0.75rem 2rem;
+		font-size: 1.25rem;
+		font-weight: 600;
 		border: none;
-		border-radius: var(--border-radius-sm);
+		border-radius: var(--border-radius);
 		cursor: pointer;
 		align-self: center;
-		margin-top: 1rem; /* Added margin */
-		transition:
-			background-color var(--transition-speed) ease,
-			transform var(--transition-speed) ease;
+		transition: transform var(--transition-speed) ease;
 	}
 
 	.submit:hover {
-		background-color: #936a53; /* Darken accent on hover */
-		transform: scale(1.02); /* Subtle scale effect */
-	}
-
-	/* Ensure summary select overlay is still functional */
-	.summary-select-wrapper {
-		position: relative;
-		width: 100%; /* Ensure it takes full width of its parent */
-	}
-	.summary-select-wrapper select {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		opacity: 0;
-		cursor: pointer;
+		transform: scale(1.03);
 	}
 
 	@media (max-width: 600px) {
 		.container {
-			padding: 1.5rem 1rem; /* Adjusted padding for mobile */
-			margin: 0;
+			padding: 1.5rem;
 			border-radius: 0;
-			min-height: calc(100vh - 8rem);
 		}
 	}
 </style>
