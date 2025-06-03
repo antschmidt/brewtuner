@@ -287,6 +287,45 @@
     background: var(--color-primary);
   }
 
+  /* Logged-in header/nav styling */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+  }
+
+  button {
+    padding: 0.75rem;
+    border: none;
+    background: var(--color-cta);
+    color: var(--color-surface);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition-speed) ease;
+  }
+
+  button:hover {
+    background: var(--color-primary);
+  }
+
+  .theme-toggle {
+    background: transparent;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    color: var(--color-text-primary);
+  }
+
+  .theme-toggle:hover {
+    background-color: var(--color-surface);
+  }
+
   @media (max-width: 600px) {
     .login-container {
       padding: 2rem; 
@@ -352,7 +391,7 @@
     </button>
     <button on:click={logout}>Logout</button>
   </nav>
-{:else if page.url.pathname === '/privacy' || page.url.pathname === '/terms'}  <!-- Removed $ from $page -->
+{:else if $page.url.pathname === '/privacy' || $page.url.pathname === '/terms'}  <!-- Removed $ from $page -->
   <slot />
 {:else}
   <div class="landing-hero">
@@ -364,7 +403,7 @@
       <li><strong>Easy Comparison</strong>: Review past logs side by side to optimize taste.</li>
       <li><strong>Secure Access</strong>: Sign in with email, magic link, OAuth, or security keys.</li>
     </ul>
-   <button class="cta-button" on:click={() => { $showAuthOverlay = true; toggleAuthModeView(false); }}>
+   <button class="cta-button" on:click={() => { $showAuthOverlay = true; toggleAuthModeView(true); }}>
      Get Started
    </button>
   </div>

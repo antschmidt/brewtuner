@@ -2,14 +2,12 @@
     import type { GrindLog } from '$lib/graphQLClient';
     import { updateGrinderLog } from '$lib/graphQLClient'; // Import the new function
     import Dial from './Dial.svelte';
-    import { createEventDispatcher } from 'svelte';
 
     export let logs: GrindLog[] = [];
     export let loading: boolean = false;
     export let show: boolean = false;
     export let toggle: () => void;
 
-    const dispatch = createEventDispatcher();
 
     let editingLogId: string | null = null;
     let currentEditValues: Partial<GrindLog> = {};

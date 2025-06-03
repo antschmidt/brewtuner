@@ -1,12 +1,8 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
-  export let min: number = 0;
-  export let max: number = 100;
-  export let step: number = 1;
-  export let value: number = 0;
-  const dispatch = createEventDispatcher();
+  let { min, max, step, value = $bindable() } = $props();
   let knobEl: HTMLDivElement;
-  let isDragging = false;
+  let isDragging = $state(false);
+  let knobAngle = $state(valueToAngle(value));
 
   function angleToValue(angle: number) {
     const startAngle = -135;
@@ -38,8 +34,7 @@
     if (angle > 180) angle -= 360;
     const val = angleToValue(angle);
     if (val !== value) {
-      value = Math.round((val*10))/10;
-      dispatch('input', { value });
+      value = Math.round(val * 10) / 10;
     }
   }
 
@@ -59,7 +54,9 @@
     knobEl.releasePointerCapture(e.pointerId);
   }
 
-  $: knobAngle = valueToAngle(value);
+  $effect(() => {
+    knobAngle = valueToAngle(value);
+  });
 </script>
 
 <style>
@@ -90,9 +87,9 @@
 <div
   bind:this={knobEl}
   class="knob"
-  on:pointerdown={pointerDown}
-  on:pointermove={pointerMove}
-  on:pointerup={pointerUp}
+  onpointerdown={pointerDown}
+  onpointermove={pointerMove}
+  onpointerup={pointerUp}
 >
   <div
     class="indicator"
