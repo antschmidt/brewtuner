@@ -2,9 +2,7 @@
 	import { scale } from 'svelte/transition';
 	import type { Writable } from 'svelte/store';
 
-	export let show: Writable<boolean>;
-	export let expandTransition = scale;
-	export let expandParams = { duration: 200 };
+	let { show, expandTransition = scale, expandParams = { duration: 200 } } = $props();
 </script>
 
 <details class="selector" bind:open={$show}>
