@@ -2,17 +2,11 @@
     import type { GrindLog } from '$lib/graphQLClient';
     import { updateGrinderLog } from '$lib/graphQLClient'; // Import the new function
     import Dial from './Dial.svelte';
-    import { createEventDispatcher } from 'svelte';
 
-    export let logs: GrindLog[] = [];
-    export let loading: boolean = false;
-    export let show: boolean = false;
-    export let toggle: () => void;
+    let { logs = [], loading = false, show = false, toggle = () => {} } = $props();
 
-    const dispatch = createEventDispatcher();
-
-    let editingLogId: string | null = null;
-    let currentEditValues: Partial<GrindLog> = {};
+    let editingLogId = $state<string | null>(null);
+    let currentEditValues = $state<Partial<GrindLog>>({});
 
     function startEdit(log: GrindLog) {
         editingLogId = log.id;
@@ -25,22 +19,24 @@
     }
 
     async function saveEdit(logId: string) {
-        if (!editingLogId || !currentEditValues) return;
+        const editingLogIdValue = editingLogId;
+        const currentEditValuesValue = currentEditValues;
+
+        if (!editingLogIdValue || !currentEditValuesValue) return;
         try {
             // Construct the updates object, ensuring types are correct
             const updates = {
-                setting: currentEditValues.setting !== undefined ? Number(currentEditValues.setting) : undefined,
-                outcome: currentEditValues.outcome,
-                adjustment: currentEditValues.adjustment as 'coarser' | 'finer' | 'good' | undefined,
-                tamped: currentEditValues.tamped,
-                grams: currentEditValues.grams !== undefined ? Number(currentEditValues.grams) : undefined,
+                setting: currentEditValuesValue.setting !== undefined ? Number(currentEditValuesValue.setting) : undefined,
+                outcome: currentEditValuesValue.outcome,
+                adjustment: currentEditValuesValue.adjustment as 'coarser' | 'finer' | 'good' | undefined,
+                tamped: currentEditValuesValue.tamped,
+                grams: currentEditValuesValue.grams !== undefined ? Number(currentEditValuesValue.grams) : undefined,
             };
             
             // Filter out undefined values explicitly before sending
             Object.keys(updates).forEach(key => updates[key] === undefined && delete updates[key]);
 
             const updatedLog = await updateGrinderLog(logId, updates);
-            dispatch('logupdated', updatedLog); // Notify parent to update the logs array
             cancelEdit();
         } catch (error) {
             console.error('Failed to save log:', error);
@@ -52,7 +48,7 @@
 <div>
     <button
         class="logs-toggle-button"
-        on:click={() => {
+        onclick={() => {
             console.log('LogDisplay: toggle clicked');
             toggle();
         }}
@@ -73,15 +69,15 @@
             {:else if logs.length}
                 {#each logs as log (log.id)}
                     <div class="log-item">
-                        {#if editingLogId === log.id}
+                        {#if $editingLogId === log.id}
                             <!-- Edit Form -->
                             <div class="log-field edit-field">
                                 <label for="edit-setting-{log.id}">Setting:</label>
-                                <input id="edit-setting-{log.id}" type="number" step="0.1" bind:value={currentEditValues.setting} />
+                                <input id="edit-setting-{log.id}" type="number" step="0.1" bind:value={$currentEditValues.setting} />
                             </div>
                             <div class="log-field edit-field">
                                 <label for="edit-adjustment-{log.id}">Adjustment:</label>
-                                <select id="edit-adjustment-{log.id}" bind:value={currentEditValues.adjustment}>
+                                <select id="edit-adjustment-{log.id}" bind:value={$currentEditValues.adjustment}>
                                     <option value="coarser">Coarser</option>
                                     <option value="good">Good</option>
                                     <option value="finer">Finer</option>
@@ -89,23 +85,26 @@
                             </div>
                             <div class="log-field edit-field">
                                 <label for="edit-grams-{log.id}">Grams:</label>
-                                <span><input id="edit-grams-{log.id}" type="number" step="0.1" bind:value={currentEditValues.grams} />g</span>
+                                <span><input id="edit-grams-{log.id}" type="number" step="0.1" bind:value={$currentEditValues.grams} />g</span>
                             </div>
                             <div class="log-field edit-field tamped-edit">
                                 <label for="edit-tamped-{log.id}">Tamped:</label>
-                                <input id="edit-tamped-{log.id}" type="checkbox" bind:checked={currentEditValues.tamped} />
+                                <input id="edit-tamped-{log.id}" type="checkbox" bind:checked={$currentEditValues.tamped} />
                             </div>
                             <div class="log-field edit-field outcome-edit">
                                 <label for="edit-outcome-{log.id}">Notes:</label>
-                                <textarea id="edit-outcome-{log.id}" bind:value={currentEditValues.outcome} rows="3"></textarea>
+                                <textarea id="edit-outcome-{log.id}" bind:value={$currentEditValues.outcome} rows="3"></textarea>
                             </div>
                             <div class="log-actions">
-                                <button class="save-button" on:click={() => saveEdit(log.id)}>Save</button>
-                                <button class="cancel-button" on:click={cancelEdit}>Cancel</button>
+                                <button class="save-button" onclick={() => saveEdit(log.id)}>Save</button>
+                                <button class="cancel-button" onclick={cancelEdit}>Cancel</button>
                             </div>
                         {:else}
                             <!-- Display Mode -->
-                            <div class="log-field"><Dial value={log.setting}/><strong> {log.setting}</strong></div>
+                            <div class="log-field">
+                                <Dial min={-50} max={50} step={0.1} value={log.setting} />
+                                <strong> {log.setting}</strong>
+                            </div>
                             {#if log.adjustment !== 'good'}
                                 <div class="log-field"><strong>Try </strong> {log.adjustment}</div>
                             {:else}
@@ -117,7 +116,7 @@
                             {/if}
                             <div class="log-field notes-display">{log.outcome}</div>
                             <div class="log-date">{new Date(log.created_at).toLocaleString()}</div>
-                            <button class="edit-button" on:click={() => startEdit(log)}>Edit</button>
+                            <button class="edit-button" onclick={() => startEdit(log)}>Edit</button>
                         {/if}
                     </div>
                 {/each}

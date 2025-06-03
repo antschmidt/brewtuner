@@ -21,7 +21,7 @@
 	import { fly, scale } from 'svelte/transition';
 	import Dial from '$lib/Dial.svelte';
 	import Selector from '$lib/Selector.svelte';
-	import BeanSelector from '$lib/BeanSelector.svelte';
+	import '../app.css'; // Import global styles
 
 	interface Roaster {
 		id: string;
@@ -592,9 +592,9 @@
 		--border-radius-sm: 4px;
 		--border-radius-md: 8px;
 		--transition-speed: 0.2s;
-		--font-family-sans: \'Inter\', sans-serif;
-		--font-family-serif: \'Roboto Slab\', serif; /* For headings or accents */
-		--font-family-display: \'Clash Display\', sans-serif; /* For special display text */
+		--font-family-sans: 'Inter', sans-serif;
+		--font-family-serif: 'Roboto Slab', serif; /* For headings or accents */
+		--font-family-display: 'Clash Display', sans-serif; /* For special display text */
 		--icon-invert: 0%;
 	}
 
@@ -772,7 +772,7 @@
 		height: 48px; /* Standardized icon size */
 	}
 	.unit-input input[type='number'] {
-		width: 3rem; /* Fixed width for grams/setting */
+		width: 5rem; /* Fixed width for grams/setting */
 		text-align: right;
 	}
 	.unit-input .unit {
