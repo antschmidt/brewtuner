@@ -352,7 +352,7 @@
     </button>
     <button on:click={logout}>Logout</button>
   </nav>
-{:else if $page.url.pathname === '/privacy' || $page.url.pathname === '/terms'}
+{:else if page.url.pathname === '/privacy' || page.url.pathname === '/terms'}  <!-- Removed $ from $page -->
   <slot />
 {:else}
   <div class="landing-hero">

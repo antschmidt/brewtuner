@@ -192,14 +192,12 @@
 <style>
   .privacy-policy-container {
     max-width: 800px;
-    margin: 2rem auto;
     padding: 2rem;
     font-family: sans-serif;
     line-height: 1.6;
     background-color: var(--color-surface);
     color: var(--color-text-primary);
     border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-md);
   }
   .privacy-policy-container h1 {
     color: var(--color-primary);
