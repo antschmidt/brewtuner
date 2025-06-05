@@ -58,7 +58,7 @@ export async function getRoasters() {
         roasters: { id: string; name: string }[]
     }>(query); console.log("Roasters fetched:", result);
     // now result.data.roasters contains your array
-    const roasters = result.data.roasters;
+    const roasters = result.data!.roasters;
     return roasters;
 }
 
@@ -77,7 +77,7 @@ export async function getBeans(roasterId: string) {
         beans: { id: string; name: string }[]
     }>(query, variables);
     console.log("Beans fetched:", response);
-    const beans = response.data.beans;
+    const beans = response.data!.beans;
     return beans;
 }
 
@@ -92,7 +92,7 @@ export async function getGrinders() {
     }
   `;
   const response = await nhost.graphql.request<{ grinders: { id: string; name: string }[] }>(query);
-  return response.data.grinders;
+  return response.data!.grinders;
 }
 
 // fetch all brew methods
@@ -106,7 +106,7 @@ export async function getBrewMethods() {
     }
   `;
   const response = await nhost.graphql.request<{ brew_methods: { id: string; name: string }[] }>(query);
-  return response.data.brew_methods;
+  return response.data!.brew_methods;
 }
 
 // fetch or insert a profile
@@ -143,7 +143,7 @@ export async function upsertProfile(
   `;
   const vars = { bean_id: beanId, grinder_id: grinderId, brew_method_id: brewMethodId, profile_setting, grams, tamped };
   const response = await nhost.graphql.request<{ insert_profiles_one: Profile }>(mutation, vars);
-  return response.data.insert_profiles_one;
+  return response.data!.insert_profiles_one;
 }
 
 // log a grind attempt
@@ -167,7 +167,7 @@ export async function logGrind(profileId: string, setting: number, outcome: stri
   `;
     const vars = { profile_id: profileId, setting, outcome, adjustment, tamped, grams };
     const response = await nhost.graphql.request<{ insert_grind_logs_one: { id: string; created_at: string } }>(mutation, vars);
-    return response.data.insert_grind_logs_one;
+    return response.data!.insert_grind_logs_one;
 }
 
 // log a grinder-specific log entry
@@ -198,7 +198,7 @@ export async function logGrinderLog(
   `;
   const vars = { grinder_id: grinderId, setting, outcome, adjustment, tamped, grams };
   const response = await nhost.graphql.request<{ insert_grinder_logs_one: GrinderLog }>(mutation, vars);
-  return response.data.insert_grinder_logs_one;
+  return response.data!.insert_grinder_logs_one;
 }
 
 // insert a new bean under a roaster
@@ -215,7 +215,7 @@ export async function addBean(roasterId: string, name: string) {
   `;
     const variables = { roaster_id: roasterId, name };
     const response = await nhost.graphql.request<{ insert_beans_one: { id: string; name: string } }>(mutation, variables);
-    return response.data.insert_beans_one;
+    return response.data!.insert_beans_one;
 }
 
 // add a new grinder
@@ -229,7 +229,10 @@ export async function addGrinder(name: string) {
     }
   `;
   const response = await nhost.graphql.request<{ insert_grinders_one: { id: string; name: string } }>(mutation, { name });
-  return response.data.insert_grinders_one;
+  if (!response.data) {
+    throw new Error("No data returned for addGrinder");
+  }
+  return response.data!.insert_grinders_one;
 }
 
 // add a new brew method
@@ -243,7 +246,10 @@ export async function addBrewMethod(name: string) {
     }
   `;
   const response = await nhost.graphql.request<{ insert_brew_methods_one: { id: string; name: string } }>(mutation, { name });
-  return response.data.insert_brew_methods_one;
+  if (!response.data) {
+    throw new Error("No data returned for addBrewMethod");
+  }
+  return response.data!.insert_brew_methods_one;
 }
 
 // insert a new roaster
@@ -258,7 +264,7 @@ console.log("Adding roaster:", name);
     }
   `;
   const response = await nhost.graphql.request<{ insert_roasters_one: { id: string; name: string } }>(mutation, { name });
-  return response.data.insert_roasters_one;
+  return response.data!.insert_roasters_one;
 }
 
 export async function updateGrinderLog(
@@ -305,7 +311,7 @@ export async function updateGrinderLog(
   
   // Filter out undefined properties from updates, so they are not sent in _set
   // Hasura typically ignores undefined fields in _set, but explicit is often better.
-  for (const key in variables) {
+  for (const key of Object.keys(variables) as Array<keyof typeof variables>) {
     if (variables[key] === undefined) {
       delete variables[key];
     }
@@ -323,7 +329,7 @@ export async function updateGrinderLog(
     console.error("Error updating grinder log:", response.error);
     throw response.error || new Error("Failed to update grinder log or no data returned.");
   }
-  return response.data.update_grind_logs_by_pk;
+  return response.data!.update_grind_logs_by_pk;
 }
 
 // fetch existing profile by bean, grinder, and brew method
@@ -351,7 +357,7 @@ export async function getProfile(
   const vars = { bean_id: beanId, grinder_id: grinderId, brew_method_id: brewMethodId };
   try {
     const response = await nhost.graphql.request<{ profiles: Profile[] }>(query, vars);
-    return response.data.profiles[0] || null;
+    return response.data?.profiles[0] || null;
   } catch (err) {
     console.error('Error fetching profile', err);
     return null;
@@ -378,5 +384,22 @@ export async function getGrindLogs(profileId: string): Promise<GrindLog[]> {
   `;
   const vars = { profile_id: profileId };
   const response = await nhost.graphql.request<{ grind_logs: GrindLog[] }>(query, vars);
-  return response.data.grind_logs;
+  if (!response.data) {
+    throw new Error("No data returned for grind logs");
+  }
+  return response.data!.grind_logs;
+}
+
+// delete a grind log by id
+export async function deleteGrindLog(logId: string): Promise<string> {
+  const mutation = `
+    mutation ($id: uuid!) {
+      delete_grind_logs_by_pk(id: $id) {
+        id
+      }
+    }
+  `;
+  const vars = { id: logId };
+  const response = await nhost.graphql.request<{ delete_grind_logs_by_pk: { id: string } }>(mutation, vars);
+  return response.data!.delete_grind_logs_by_pk.id;
 }

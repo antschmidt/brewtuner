@@ -1,9 +1,10 @@
 <script lang="ts">
     import type { GrindLog } from '$lib/graphQLClient';
-    import { updateGrinderLog } from '$lib/graphQLClient'; // Import the new function
+    import { updateGrinderLog, deleteGrindLog } from '$lib/graphQLClient';
     import Dial from './Dial.svelte';
 
-    let { logs = [], loading = false, show = false, toggle = () => {} } = $props();
+    // Props, including callbacks for updates and deletions
+    let { logs = [], loading = false, show = false, toggle = () => {}, onLogUpdated = (_: GrindLog) => {}, onLogDeleted = (_: string) => {} } = $props();
 
     let editingLogId = $state<string | null>(null);
     let currentEditValues = $state<Partial<GrindLog>>({});
@@ -34,18 +35,32 @@
             };
             
             // Filter out undefined values explicitly before sending
-            Object.keys(updates).forEach(key => updates[key] === undefined && delete updates[key]);
-
+            (Object.keys(updates) as (keyof typeof updates)[]).forEach(key => {
+                if (updates[key] === undefined) {
+                    delete updates[key];
+                }
+            });
+            
             const updatedLog = await updateGrinderLog(logId, updates);
             cancelEdit();
+            onLogUpdated(updatedLog);
         } catch (error) {
             console.error('Failed to save log:', error);
             // Handle error (e.g., show a message to the user)
         }
     }
+
+    async function deleteLog(logId: string) {
+        try {
+            await deleteGrindLog(logId);
+            onLogDeleted(logId);
+        } catch (e) {
+            console.error('Failed to delete log:', e);
+        }
+    }
 </script>
 
-<div>
+<div class="log-display-container">
     <button
         class="logs-toggle-button"
         onclick={() => {
@@ -69,15 +84,15 @@
             {:else if logs.length}
                 {#each logs as log (log.id)}
                     <div class="log-item">
-                        {#if $editingLogId === log.id}
+                        {#if editingLogId === log.id}
                             <!-- Edit Form -->
                             <div class="log-field edit-field">
                                 <label for="edit-setting-{log.id}">Setting:</label>
-                                <input id="edit-setting-{log.id}" type="number" step="0.1" bind:value={$currentEditValues.setting} />
+                                <input id="edit-setting-{log.id}" type="number" step="0.1" bind:value={currentEditValues.setting} />
                             </div>
                             <div class="log-field edit-field">
                                 <label for="edit-adjustment-{log.id}">Adjustment:</label>
-                                <select id="edit-adjustment-{log.id}" bind:value={$currentEditValues.adjustment}>
+                                <select id="edit-adjustment-{log.id}" bind:value={currentEditValues.adjustment}>
                                     <option value="coarser">Coarser</option>
                                     <option value="good">Good</option>
                                     <option value="finer">Finer</option>
@@ -85,15 +100,15 @@
                             </div>
                             <div class="log-field edit-field">
                                 <label for="edit-grams-{log.id}">Grams:</label>
-                                <span><input id="edit-grams-{log.id}" type="number" step="0.1" bind:value={$currentEditValues.grams} />g</span>
+                                <span><input id="edit-grams-{log.id}" type="number" step="0.1" bind:value={currentEditValues.grams} />g</span>
                             </div>
                             <div class="log-field edit-field tamped-edit">
                                 <label for="edit-tamped-{log.id}">Tamped:</label>
-                                <input id="edit-tamped-{log.id}" type="checkbox" bind:checked={$currentEditValues.tamped} />
+                                <input id="edit-tamped-{log.id}" type="checkbox" bind:checked={currentEditValues.tamped} />
                             </div>
                             <div class="log-field edit-field outcome-edit">
                                 <label for="edit-outcome-{log.id}">Notes:</label>
-                                <textarea id="edit-outcome-{log.id}" bind:value={$currentEditValues.outcome} rows="3"></textarea>
+                                <textarea id="edit-outcome-{log.id}" bind:value={currentEditValues.outcome} rows="3"></textarea>
                             </div>
                             <div class="log-actions">
                                 <button class="save-button" onclick={() => saveEdit(log.id)}>Save</button>
@@ -117,6 +132,7 @@
                             <div class="log-field notes-display">{log.outcome}</div>
                             <div class="log-date">{new Date(log.created_at).toLocaleString()}</div>
                             <button class="edit-button" onclick={() => startEdit(log)}>Edit</button>
+                            <button class="delete-button" onclick={() => deleteLog(log.id)}>Delete</button>
                         {/if}
                     </div>
                 {/each}
@@ -128,12 +144,26 @@
 </div>
 
 <style>
+    .log-display-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #ffffff00; /* Subtle background */
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
     .logs-toggle-button { /* Renamed from .logs to be more specific */
         display: inline-flex;
         align-items: center;
         justify-content: center; /* Centered icon */
-        width: 36px;
-        height: 36px;
+        margin-top: 2rem;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         transition: background 0.2s;
         border: none;
@@ -142,8 +172,8 @@
         padding: 0;
     }
     .logs-toggle-button img {
-        width: 20px;
-        height: 20px; /* Ensure consistent icon size */
+        width: 40px;
+        height: 40px; /* Ensure consistent icon size */
         transition: transform 0.2s;
     }
 
@@ -195,9 +225,7 @@
         /* color: #555; */ /* Already white from global */
         justify-content: flex-start; /* Align items to start for better readability */
     }
-    .log-field strong {
-        /* color: #333; */ /* Already white from global */
-    }
+
     .log-date {
         flex: 1 1 100%; /* Take full width on new line if wrapped */
         font-size: 0.8rem;
@@ -225,6 +253,19 @@
     .cancel-button {
         background-color: #f443366b; /* Reddish */
         margin-left: 0.5rem;
+    }
+    .delete-button {
+        padding: 0.3rem 0.7rem;
+        border: 1px solid #e74c3c;
+        background-color: #e74c3c33;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        margin-left: 0.5rem;
+    }
+    .delete-button:hover {
+        background-color: #e74c3c55;
     }
     .log-actions {
         display: flex;
@@ -276,6 +317,7 @@
         gap: 0.5rem;
     }
     .notes-display {
+        min-width: 100%;
         word-break: break-word; /* Ensure long notes wrap */
     }
 </style>
