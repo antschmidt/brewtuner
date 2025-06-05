@@ -164,8 +164,8 @@
 				beanId,
 				get(selectedGrinder),
 				get(selectedMethod),
-				setting,
-				grams,
+				setting ?? 0,
+				grams ?? 0,
 				tamped
 			);
 			console.log('submitLog (initial profile creation):', profile);
@@ -180,8 +180,8 @@
 				beanId,
 				get(selectedGrinder),
 				get(selectedMethod),
-				setting,
-				grams,
+				setting ?? 0,
+				grams ?? 0,
 				tamped
 			);
 			console.log('submitLog (profile upsert):', profile);
@@ -196,10 +196,10 @@
 			profileId = currentProfile.id;
 		}
 		// always log the grind attempt
-		await logGrind(profileId, setting, outcomeText, adjustment, tamped, grams);
+		await logGrind(profileId, setting ?? 0, outcomeText, adjustment, tamped, grams ?? 0);
 		// also log to the grinder-specific logs when adjustment is 'good'
 		if (adjustment === 'good') {
-			await logGrinderLog(get(selectedGrinder), setting, outcomeText, adjustment, tamped, grams);
+			await logGrinderLog(get(selectedGrinder), setting ?? 0, outcomeText, adjustment, tamped, grams ?? 0);
 		}
 
 		// Immediately refresh and show logs
@@ -294,7 +294,7 @@
 				grams = currentProfile.grams;
 				tamped = currentProfile.tamped;
 				outcomeText = last.outcome;
-				adjustment = last.adjustment;
+				adjustment = last.adjustment as 'coarser' | 'good' | 'finer';
 			} else {
 				// no logs: reset to defaults
 				setting = 0;
@@ -350,10 +350,15 @@
 	selectedGrinder.subscribe(checkAndLoad);
 	selectedMethod.subscribe(checkAndLoad);
 
-	function handleLogUpdated(event: CustomEvent<GrindLog>) {
-		const updatedLog = event.detail;
+	function handleLogUpdated(updatedLog: GrindLog) {
 		// Update the local 'logs' array to be reactive
 		logs = logs.map((log) => (log.id === updatedLog.id ? updatedLog : log));
+	}
+
+	// Add handler for deleted logs
+	function handleLogDeleted(logId: string) {
+		// Remove the deleted log from local 'logs' array
+		logs = logs.filter((log) => log.id !== logId);
 	}
 </script>
 
@@ -377,7 +382,7 @@
 			<select
 				value={$selectedRoaster}
 				on:change={(e) => {
-					const v = e.target.value;
+					const v = (e.target as HTMLSelectElement).value;
 					if (v === '__add__') {
 						showRoasterSelector.set(true);
 					} else {
@@ -410,7 +415,7 @@
 				<select
 					value={$selectedBeanId}
 					on:change={(e) => {
-						const v = e.target.value;
+						const v = (e.target as HTMLSelectElement).value;
 						if (v === '__add__') {
 							showBeanSelector.set(true);
 						} else {
@@ -441,7 +446,7 @@
 				<select
 					value={$selectedGrinder}
 					on:change={(e) => {
-						const v = e.target.value;
+						const v = (e.target as HTMLSelectElement).value;
 						if (v === '__add__') {
 							showGrinderSelector.set(true);
 						} else {
@@ -470,7 +475,7 @@
 					<select
 						value={$selectedMethod}
 						on:change={(e) => {
-							const v = e.target.value;
+							const v = (e.target as HTMLSelectElement).value;
 							if (v === '__add__') {
 								showMethodSelector.set(true);
 							} else {
@@ -561,14 +566,17 @@
 						bind:value={outcomeText}
 					></textarea>
 				</span>
+				<span class="bottom-buttons">
 				<button class="submit" on:click|preventDefault={submitLog} type="button">Submit</button>
 				<LogDisplay
 					{logs}
 					loading={$loadingLogs}
 					show={$showLogs}
 					toggle={toggleLogs}
-					on:logupdated={handleLogUpdated}
+					onLogUpdated={handleLogUpdated}
+					onLogDeleted={handleLogDeleted}
 				/>
+				</span>
 			{/if}
 		{/if}
 	{/if}
@@ -615,6 +623,8 @@
 	.container {
 		display: flex;
 		flex-direction: column;
+		width: 100%;
+		max-width: 1000px;
 		gap: 2rem; /* Increased gap for better separation */
 		justify-content: flex-start;
 		padding: 2rem; /* Consistent padding */
@@ -631,7 +641,7 @@
 	textarea {
 		width: 100%;
 		padding: 0.85rem 1rem; /* Increased padding */
-		border: 1px solid var(--color-border);
+		border: 0px solid var(--color-border);
 		border-radius: var(--border-radius-sm);
 		background: var(--color-input-bg);
 		font-family: inherit;
@@ -654,6 +664,15 @@
 	textarea {
 		resize: vertical; /* Allow vertical resize */
 		min-height: 80px;
+	}
+
+	.bottom-buttons {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		width: 100%;
+		gap: 1rem; /* Increased gap for better spacing */
+		margin-top: 1rem; /* Added margin for separation */
 	}
 
 	.new-input {
@@ -695,7 +714,7 @@
 		font-family: var(--font-family-serif); /* Using serif for a touch of class */
 		font-size: 1.1rem; /* Adjusted size */
 		background: var(--color-surface);
-		border: 1px solid var(--color-border);
+		border: 0px solid var(--color-border);
 		border-radius: var(--border-radius-md);
 		padding: 0.75rem 1rem;
 		cursor: pointer;
@@ -742,7 +761,7 @@
 		padding: 1rem;
 		background: var(--color-surface);
 		border-radius: var(--border-radius-md);
-		border: 1px solid var(--color-border);
+		border: 0px solid var(--color-border);
 	}
 	.log-section p {
 		margin: 0;
@@ -874,6 +893,7 @@
 			margin: 0;
 			border-radius: 0;
 			min-height: calc(100vh - 8rem);
+			width: 95%;
 		}
 	}
 </style>
