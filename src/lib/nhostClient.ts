@@ -1,9 +1,7 @@
 import { createClient } from '@nhost/nhost-js';
-
-const isBrowser = typeof window !== 'undefined';
+import { PUBLIC_NHOST_SUBDOMAIN, PUBLIC_NHOST_REGION } from '$env/static/public';
 
 export const nhost = createClient({
-  authUrl: isBrowser ? 'https://auth.brewtuner.app/v1' : undefined,
-  graphqlUrl: isBrowser ? 'https://graphql.brewtuner.app/v1/graphql' : undefined,
-  storageUrl: isBrowser ? 'https://storage.brewtuner.app/v1' : undefined
+  subdomain: PUBLIC_NHOST_SUBDOMAIN,
+  region: PUBLIC_NHOST_REGION
 });

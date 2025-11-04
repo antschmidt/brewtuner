@@ -53,10 +53,19 @@ pnpm install
 
 3. Set up environment variables:
 
-Create a `.env` file in the root directory with your Nhost credentials:
+Copy the example environment file and configure your Nhost credentials:
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your actual Nhost project details:
+- Get your subdomain and region from your [Nhost Dashboard](https://app.nhost.io/)
+- The subdomain is the first part of your Nhost URL (e.g., "myproject" from `myproject.nhost.run`)
+- The region is shown in your project settings (e.g., "us-east-1", "eu-central-1")
+
 ```env
-PUBLIC_NHOST_SUBDOMAIN=your-subdomain
-PUBLIC_NHOST_REGION=your-region
+PUBLIC_NHOST_SUBDOMAIN=your-actual-subdomain
+PUBLIC_NHOST_REGION=your-actual-region
 ```
 
 4. Start the development server:
