@@ -1,16 +1,23 @@
 <script lang="ts">
 	import { scale } from 'svelte/transition';
 	import type { Writable } from 'svelte/store';
+	import type { Snippet } from 'svelte';
 
-	let { show, expandTransition = scale, expandParams = { duration: 200 } } = $props();
+	let { show, expandTransition = scale, expandParams = { duration: 200 }, summary, children } = $props<{
+		show: Writable<boolean>;
+		expandTransition?: any;
+		expandParams?: any;
+		summary: Snippet;
+		children: Snippet;
+	}>();
 </script>
 
 <details class="selector" bind:open={$show}>
 	<summary class="summary-button">
-		<slot name="summary" />
+		{@render summary()}
 	</summary>
 	<div in:expandTransition={expandParams} class="expanded">
-		<slot />
+		{@render children()}
 	</div>
 </details>
 

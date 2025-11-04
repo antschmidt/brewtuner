@@ -6,10 +6,10 @@
 	import { page } from '$app/stores';
 	import '../app.css'; // Import global styles
 
-	const user = writable(nhost.auth.getUser());
+	const user = writable(nhost.getUserSession()?.user ?? null);
 	const showAuthOverlay = writable(false); // Store for overlay visibility
 
-	onMount(() => {
+	onMount(async () => {
 		if ('serviceWorker' in navigator) {
 			navigator.serviceWorker.ready.then((reg) => {
 				reg.addEventListener('updatefound', () => {
@@ -17,9 +17,9 @@
 				});
 			});
 		}
-		nhost.auth.onAuthStateChanged((_event, session) => {
-			user.set(session?.user ?? null);
-		});
+		// Check for current session
+		const session = nhost.getUserSession();
+		user.set(session?.user ?? null);
 	});
 
 	let email = '';
@@ -35,37 +35,53 @@
 	}
 
 	const login = async () => {
-		await nhost.auth.signIn({ email, password });
+		try {
+			const response = await nhost.auth.signInEmailPassword({ email, password });
+			if (response.body.session?.user) {
+				user.set(response.body.session.user);
+			}
+		} catch (error: any) {
+			alert(`Login error: ${error.message}`);
+		}
 	};
 
 	const logout = async () => {
-		await nhost.auth.signOut();
+		try {
+			await nhost.auth.signOut({ all: true });
+			user.set(null);
+		} catch (error: any) {
+			console.error('Logout error:', error);
+		}
 	};
 
 	const signup = async () => {
-		const { error } = await nhost.auth.signUp({ email, password });
-		if (error) {
+		try {
+			const response = await nhost.auth.signUpEmailPassword({ email, password });
+			if (response.body.session?.user) {
+				user.set(response.body.session.user);
+			} else {
+				alert('Signup successful! Please check your email to verify your account.');
+				toggleAuthModeView(true);
+			}
+		} catch (error: any) {
 			alert(error.message);
-			return;
 		}
-		alert('Signup successful! Please check your email to verify your account.');
-		toggleAuthModeView(true);
 	};
 
 	const signInWithGoogle = async () => {
-		const { error } = await nhost.auth.signIn({
-			provider: 'google'
-		});
-		if (error) {
+		try {
+			const url = nhost.auth.signInProviderURL('google');
+			window.location.href = url;
+		} catch (error: any) {
 			alert(`Error signing in with Google: ${error.message}`);
 		}
 	};
 
 	const signInWithGitHub = async () => {
-		const { error } = await nhost.auth.signIn({
-			provider: 'github'
-		});
-		if (error) {
+		try {
+			const url = nhost.auth.signInProviderURL('github');
+			window.location.href = url;
+		} catch (error: any) {
 			alert(`Error signing in with GitHub: ${error.message}`);
 		}
 	};
@@ -75,12 +91,12 @@
 			alert('Please enter your email address.');
 			return;
 		}
-		const { error } = await nhost.auth.signIn({ email });
-		if (error) {
-			alert(`Error sending magic link: ${error.message}`);
-		} else {
+		try {
+			await nhost.auth.signInPasswordlessEmail({ email });
 			alert('Magic link sent! Check your email to complete the sign-in process.');
 			activeAuthView = 'initial';
+		} catch (error: any) {
+			alert(`Error sending magic link: ${error.message}`);
 		}
 	};
 
@@ -89,22 +105,15 @@
 			alert('Please enter your email address to register with a security key.');
 			return;
 		}
-		const { error, session } = await nhost.auth.signUp({
-			email,
-			securityKey: true
-		});
-
-		if (error) {
-			alert(`Error signing up with security key: ${error.message}`);
-		} else {
+		try {
+			await nhost.auth.signUpWebauthn({ email });
 			alert(
 				'Follow the browser prompts to register your security key. You might be asked to verify your email first if this is a new account.'
 			);
-			if (session) {
-				user.set(session.user);
-			} else {
-				toggleAuthModeView(true);
-			}
+			// The webauthn flow is multi-step, user will need to complete it
+			toggleAuthModeView(true);
+		} catch (error: any) {
+			alert(`Error signing up with security key: ${error.message}`);
 		}
 	};
 
@@ -113,17 +122,12 @@
 			alert('Please enter your email address to sign in with a security key.');
 			return;
 		}
-		const { error, session } = await nhost.auth.signIn({
-			email,
-			securityKey: true
-		});
-
-		if (error) {
+		try {
+			await nhost.auth.signInWebauthn({ email });
+			// The webauthn flow is multi-step, user will need to complete it
+			alert('Follow the browser prompts to sign in with your security key.');
+		} catch (error: any) {
 			alert(`Error signing in with security key: ${error.message}`);
-		} else {
-			if (session) {
-				user.set(session.user);
-			}
 		}
 	};
 </script>
