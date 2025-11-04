@@ -1,9 +1,22 @@
 <script lang="ts">
+/**
+ * Dial Component
+ *
+ * An interactive rotary dial/knob control for selecting grinder settings.
+ * Uses pointer events to track rotation and converts angular position to numeric values.
+ * The dial rotates within a 270-degree arc (-135° to +135°).
+ */
+
   let { min, max, step, value = $bindable() } = $props();
   let knobEl: HTMLDivElement;
   let isDragging = $state(false);
   let knobAngle = $state(valueToAngle(value));
 
+  /**
+   * Converts an angle (in degrees) to a numeric value within the min-max range
+   * @param angle - The angle in degrees (-135 to 135)
+   * @returns The corresponding numeric value, rounded to the nearest step
+   */
   function angleToValue(angle: number) {
     const startAngle = -135;
     const endAngle = 135;
@@ -15,6 +28,11 @@
     return val;
   }
 
+  /**
+   * Converts a numeric value to an angle (in degrees)
+   * @param val - The numeric value to convert
+   * @returns The corresponding angle in degrees (-135 to 135)
+   */
   function valueToAngle(val: number) {
     const startAngle = -135;
     const endAngle = 135;
@@ -22,6 +40,11 @@
     return startAngle + ratio * (endAngle - startAngle);
   }
 
+  /**
+   * Updates the dial value based on pointer position
+   * Calculates the angle from the dial center to the pointer position
+   * @param e - The pointer event containing cursor coordinates
+   */
   function updateValueFromEvent(e: PointerEvent) {
     const rect = knobEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;

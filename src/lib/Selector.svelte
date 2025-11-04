@@ -1,4 +1,15 @@
 <script lang="ts">
+/**
+ * Selector Component
+ *
+ * A reusable collapsible selector using HTML <details> element.
+ * Features:
+ * - Customizable expand/collapse transitions
+ * - Summary slot for the collapsed view (typically a select dropdown)
+ * - Default slot for expanded content (e.g., "Add new" form)
+ * - Controlled via a writable store for open/closed state
+ */
+
 	import { scale } from 'svelte/transition';
 	import type { Writable } from 'svelte/store';
 	import type { Snippet } from 'svelte';
