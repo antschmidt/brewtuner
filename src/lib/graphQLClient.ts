@@ -84,8 +84,13 @@ export async function getRoasters() {
   `;
     const result = await nhost.graphql.request<{
         roasters: { id: string; name: string }[]
-    }>(query);
-    return result.data!.roasters;
+    }>({
+        query,
+    });
+    console.log("Roasters fetched:", result);
+    // now result.body.data.roasters contains your array
+    const roasters = result.body.data!.roasters;
+    return roasters;
 }
 
 /**
@@ -106,8 +111,13 @@ export async function getBeans(roasterId: string) {
     const variables = { roaster_id: roasterId };
     const response = await nhost.graphql.request<{
         beans: { id: string; name: string }[]
-    }>(query, variables);
-    return response.data!.beans;
+    }>({
+        query,
+        variables
+    });
+    console.log("Beans fetched:", response);
+    const beans = response.body.data!.beans;
+    return beans;
 }
 
 /**
@@ -124,8 +134,8 @@ export async function getGrinders() {
       }
     }
   `;
-  const response = await nhost.graphql.request<{ grinders: { id: string; name: string }[] }>(query);
-  return response.data!.grinders;
+  const response = await nhost.graphql.request<{ grinders: { id: string; name: string }[] }>({ query });
+  return response.body.data!.grinders;
 }
 
 /**
@@ -142,8 +152,8 @@ export async function getBrewMethods() {
       }
     }
   `;
-  const response = await nhost.graphql.request<{ brew_methods: { id: string; name: string }[] }>(query);
-  return response.data!.brew_methods;
+  const response = await nhost.graphql.request<{ brew_methods: { id: string; name: string }[] }>({ query });
+  return response.body.data!.brew_methods;
 }
 
 // ============================================================================
@@ -195,8 +205,8 @@ export async function upsertProfile(
     }
   `;
   const vars = { bean_id: beanId, grinder_id: grinderId, brew_method_id: brewMethodId, profile_setting, grams, tamped };
-  const response = await nhost.graphql.request<{ insert_profiles_one: Profile }>(mutation, vars);
-  return response.data!.insert_profiles_one;
+  const response = await nhost.graphql.request<{ insert_profiles_one: Profile }>({ query: mutation, variables: vars });
+  return response.body.data!.insert_profiles_one;
 }
 
 // ============================================================================
@@ -233,8 +243,8 @@ export async function logGrind(profileId: string, setting: number, outcome: stri
     }
   `;
     const vars = { profile_id: profileId, setting, outcome, adjustment, tamped, grams };
-    const response = await nhost.graphql.request<{ insert_grind_logs_one: { id: string; created_at: string } }>(mutation, vars);
-    return response.data!.insert_grind_logs_one;
+    const response = await nhost.graphql.request<{ insert_grind_logs_one: { id: string; created_at: string } }>({ query: mutation, variables: vars });
+    return response.body.data!.insert_grind_logs_one;
 }
 
 /**
@@ -274,8 +284,8 @@ export async function logGrinderLog(
     }
   `;
   const vars = { grinder_id: grinderId, setting, outcome, adjustment, tamped, grams };
-  const response = await nhost.graphql.request<{ insert_grinder_logs_one: GrinderLog }>(mutation, vars);
-  return response.data!.insert_grinder_logs_one;
+  const response = await nhost.graphql.request<{ insert_grinder_logs_one: GrinderLog }>({ query: mutation, variables: vars });
+  return response.body.data!.insert_grinder_logs_one;
 }
 
 // ============================================================================
@@ -301,8 +311,8 @@ export async function addBean(roasterId: string, name: string) {
     }
   `;
     const variables = { roaster_id: roasterId, name };
-    const response = await nhost.graphql.request<{ insert_beans_one: { id: string; name: string } }>(mutation, variables);
-    return response.data!.insert_beans_one;
+    const response = await nhost.graphql.request<{ insert_beans_one: { id: string; name: string } }>({ query: mutation, variables });
+    return response.body.data!.insert_beans_one;
 }
 
 /**
@@ -320,11 +330,11 @@ export async function addGrinder(name: string) {
       }
     }
   `;
-  const response = await nhost.graphql.request<{ insert_grinders_one: { id: string; name: string } }>(mutation, { name });
-  if (!response.data) {
+  const response = await nhost.graphql.request<{ insert_grinders_one: { id: string; name: string } }>({ query: mutation, variables: { name } });
+  if (!response.body.data) {
     throw new Error("No data returned for addGrinder");
   }
-  return response.data!.insert_grinders_one;
+  return response.body.data!.insert_grinders_one;
 }
 
 /**
@@ -342,11 +352,11 @@ export async function addBrewMethod(name: string) {
       }
     }
   `;
-  const response = await nhost.graphql.request<{ insert_brew_methods_one: { id: string; name: string } }>(mutation, { name });
-  if (!response.data) {
+  const response = await nhost.graphql.request<{ insert_brew_methods_one: { id: string; name: string } }>({ query: mutation, variables: { name } });
+  if (!response.body.data) {
     throw new Error("No data returned for addBrewMethod");
   }
-  return response.data!.insert_brew_methods_one;
+  return response.body.data!.insert_brew_methods_one;
 }
 
 /**
@@ -364,8 +374,8 @@ export async function addRoaster(name: string) {
       }
     }
   `;
-  const response = await nhost.graphql.request<{ insert_roasters_one: { id: string; name: string } }>(mutation, { name });
-  return response.data!.insert_roasters_one;
+  const response = await nhost.graphql.request<{ insert_roasters_one: { id: string; name: string } }>({ query: mutation, variables: { name } });
+  return response.body.data!.insert_roasters_one;
 }
 
 /**
@@ -429,16 +439,16 @@ export async function updateGrinderLog(
   variables.id = logId;
 
 
-  const response = await nhost.graphql.request<{ update_grind_logs_by_pk: GrindLog }>(
-    mutation,
+  const response = await nhost.graphql.request<{ update_grind_logs_by_pk: GrindLog }>({
+    query: mutation,
     variables
-  );
+  });
 
-  if (response.error || !response.data?.update_grind_logs_by_pk) {
-    console.error("Error updating grinder log:", response.error);
-    throw response.error || new Error("Failed to update grinder log or no data returned.");
+  if (!response.body.data?.update_grind_logs_by_pk) {
+    console.error("Error updating grinder log");
+    throw new Error("Failed to update grinder log or no data returned.");
   }
-  return response.data!.update_grind_logs_by_pk;
+  return response.body.data!.update_grind_logs_by_pk;
 }
 
 /**
@@ -471,8 +481,8 @@ export async function getProfile(
 `;
   const vars = { bean_id: beanId, grinder_id: grinderId, brew_method_id: brewMethodId };
   try {
-    const response = await nhost.graphql.request<{ profiles: Profile[] }>(query, vars);
-    return response.data?.profiles[0] || null;
+    const response = await nhost.graphql.request<{ profiles: Profile[] }>({ query, variables: vars });
+    return response.body.data?.profiles[0] || null;
   } catch (err) {
     console.error('Error fetching profile', err);
     return null;
@@ -503,11 +513,11 @@ export async function getGrindLogs(profileId: string): Promise<GrindLog[]> {
     }
   `;
   const vars = { profile_id: profileId };
-  const response = await nhost.graphql.request<{ grind_logs: GrindLog[] }>(query, vars);
-  if (!response.data) {
+  const response = await nhost.graphql.request<{ grind_logs: GrindLog[] }>({ query, variables: vars });
+  if (!response.body.data) {
     throw new Error("No data returned for grind logs");
   }
-  return response.data!.grind_logs;
+  return response.body.data!.grind_logs;
 }
 
 /**
@@ -525,6 +535,6 @@ export async function deleteGrindLog(logId: string): Promise<string> {
     }
   `;
   const vars = { id: logId };
-  const response = await nhost.graphql.request<{ delete_grind_logs_by_pk: { id: string } }>(mutation, vars);
-  return response.data!.delete_grind_logs_by_pk.id;
+  const response = await nhost.graphql.request<{ delete_grind_logs_by_pk: { id: string } }>({ query: mutation, variables: vars });
+  return response.body.data!.delete_grind_logs_by_pk.id;
 }

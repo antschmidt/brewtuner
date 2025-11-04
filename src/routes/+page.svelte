@@ -354,127 +354,143 @@
 		</div>
 	{/if}
 	<Selector show={showRoasterSelector} expandTransition={fly} expandParams={{ duration: 300 }}>
-		<!-- expanded roaster selection -->
-		<div class="new-input">
-			<input type="text" placeholder="New roaster name" bind:value={newRoaster} />
-			<button on:click={createRoaster} disabled={!newRoaster.trim()}>Save</button>
-		</div>
-		<!-- summary roaster view -->
-		<div slot="summary" class="summary-select-wrapper summary-button">
-			<select
-				value={$selectedRoaster}
-				on:change={(e) => {
-					const v = (e.target as HTMLSelectElement).value;
-					if (v === '__add__') {
-						showRoasterSelector.set(true);
-					} else {
-						selectedRoaster.set(v);
-						showRoasterSelector.set(false);
-					}
-				}}
-			>
-				<option value="" disabled hidden>Select Roaster</option>
-				<option value="__add__">+ Add New Roaster</option>
-				{#each $roasters as r}
-					<option value={r.id}>{r.name}</option>
-				{/each}
-			</select>
-			<span class="icon">
-				<img src="/roaster.png" alt="Roaster" />
-			</span>
-			<span>{$roasters.find((r) => r.id === $selectedRoaster)?.name || `Select a roaster`}</span>
-		</div>
+		{#snippet summary()}
+			<!-- summary roaster view -->
+			<div class="summary-select-wrapper summary-button">
+				<select
+					value={$selectedRoaster}
+					on:change={(e) => {
+						const v = (e.target as HTMLSelectElement).value;
+						if (v === '__add__') {
+							showRoasterSelector.set(true);
+						} else {
+							selectedRoaster.set(v);
+							showRoasterSelector.set(false);
+						}
+					}}
+				>
+					<option value="" disabled hidden>Select Roaster</option>
+					<option value="__add__">+ Add New Roaster</option>
+					{#each $roasters as r}
+						<option value={r.id}>{r.name}</option>
+					{/each}
+				</select>
+				<span class="icon">
+					<img src="/roaster.png" alt="Roaster" />
+				</span>
+				<span>{$roasters.find((r) => r.id === $selectedRoaster)?.name || `Select a roaster`}</span>
+			</div>
+		{/snippet}
+		{#snippet children()}
+			<!-- expanded roaster selection -->
+			<div class="new-input">
+				<input type="text" placeholder="New roaster name" bind:value={newRoaster} />
+				<button on:click={createRoaster} disabled={!newRoaster.trim()}>Save</button>
+			</div>
+		{/snippet}
 	</Selector>
 
 	{#if $selectedRoaster}
 		<Selector show={showBeanSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
-			<div class="new-input">
-				<input type="text" placeholder="New bean name" bind:value={newBean} />
-				<button on:click={addNewBean} disabled={!newBean.trim()}>Save</button>
-			</div>
-			<!-- summary bean view -->
-			<div slot="summary" class="summary-select-wrapper summary-button">
-				<select
-					value={$selectedBeanId}
-					on:change={(e) => {
-						const v = (e.target as HTMLSelectElement).value;
-						if (v === '__add__') {
-							showBeanSelector.set(true);
-						} else {
-							selectedBeanId.set(v);
-							showBeanSelector.set(false);
-						}
-					}}
-				>
-					<option value="" disabled hidden>Select Bean</option>
-					<option value="__add__">+ Add New Bean</option>
-					{#each $beans as b}
-						<option value={b.id}>{b.name}</option>
-					{/each}
-				</select>
-				<span class="icon"><img src="/bag-of-coffee.png" alt="Bean" /></span>
-				<span>{$selectedBean?.name || `Select a bean`}</span>
-			</div>
+			{#snippet summary()}
+				<!-- summary bean view -->
+				<div class="summary-select-wrapper summary-button">
+					<select
+						value={$selectedBeanId}
+						on:change={(e) => {
+							const v = (e.target as HTMLSelectElement).value;
+							if (v === '__add__') {
+								showBeanSelector.set(true);
+							} else {
+								selectedBeanId.set(v);
+								showBeanSelector.set(false);
+							}
+						}}
+					>
+						<option value="" disabled hidden>Select Bean</option>
+						<option value="__add__">+ Add New Bean</option>
+						{#each $beans as b}
+							<option value={b.id}>{b.name}</option>
+						{/each}
+					</select>
+					<span class="icon"><img src="/bag-of-coffee.png" alt="Bean" /></span>
+					<span>{$selectedBean?.name || `Select a bean`}</span>
+				</div>
+			{/snippet}
+			{#snippet children()}
+				<div class="new-input">
+					<input type="text" placeholder="New bean name" bind:value={newBean} />
+					<button on:click={addNewBean} disabled={!newBean.trim()}>Save</button>
+				</div>
+			{/snippet}
 		</Selector>
 	{/if}
 
 	{#if $selectedBean}
 		<Selector show={showGrinderSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
-			<div class="new-input">
-				<input type="text" placeholder="Add new grinder" bind:value={newGrinder} />
-				<button on:click={createGrinder} disabled={!newGrinder.trim()}>Save</button>
-			</div>
-			<div slot="summary" class="summary-select-wrapper summary-button">
-				<select
-					value={$selectedGrinder}
-					on:change={(e) => {
-						const v = (e.target as HTMLSelectElement).value;
-						if (v === '__add__') {
-							showGrinderSelector.set(true);
-						} else {
-							selectedGrinder.set(v);
-							showGrinderSelector.set(false);
-						}
-					}}
-				>
-					<option value="" disabled hidden>Select Grinder</option>
-					<option value="__add__">+ Add New Grinder</option>
-					{#each $grinders as g}
-						<option value={g.id}>{g.name}</option>
-					{/each}
-				</select>
-				<span class="icon"><img src="/grinder.png" alt="Grinder" /></span>
-				<span>{$selectedGrinderObj?.name || 'Select a grinder'}</span>
-			</div>
-		</Selector>
-		{#if $selectedGrinder}
-			<Selector show={showMethodSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
-				<div class="new-input">
-					<input id="new-method" type="text" placeholder="Add new method" bind:value={newMethod} />
-					<button on:click={createMethod} disabled={!newMethod.trim()}>Save</button>
-				</div>
-				<div slot="summary" class="summary-select-wrapper summary-button">
+			{#snippet summary()}
+				<div class="summary-select-wrapper summary-button">
 					<select
-						value={$selectedMethod}
+						value={$selectedGrinder}
 						on:change={(e) => {
 							const v = (e.target as HTMLSelectElement).value;
 							if (v === '__add__') {
-								showMethodSelector.set(true);
+								showGrinderSelector.set(true);
 							} else {
-								selectedMethod.set(v);
-								showMethodSelector.set(false);
+								selectedGrinder.set(v);
+								showGrinderSelector.set(false);
 							}
 						}}
 					>
-						<option value="" disabled hidden>Select Method</option>
-						<option value="__add__">+ Add New Method</option>
-						{#each $brewMethods as m}
-							<option value={m.id}>{m.name}</option>
+						<option value="" disabled hidden>Select Grinder</option>
+						<option value="__add__">+ Add New Grinder</option>
+						{#each $grinders as g}
+							<option value={g.id}>{g.name}</option>
 						{/each}
 					</select>
-					<span class="icon"><img src="/method.png" alt="Method" /></span>
-					<span id="selected-method">{$selectedMethodObj?.name || `Select a method`}</span>
+					<span class="icon"><img src="/grinder.png" alt="Grinder" /></span>
+					<span>{$selectedGrinderObj?.name || 'Select a grinder'}</span>
 				</div>
+			{/snippet}
+			{#snippet children()}
+				<div class="new-input">
+					<input type="text" placeholder="Add new grinder" bind:value={newGrinder} />
+					<button on:click={createGrinder} disabled={!newGrinder.trim()}>Save</button>
+				</div>
+			{/snippet}
+		</Selector>
+		{#if $selectedGrinder}
+			<Selector show={showMethodSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
+				{#snippet summary()}
+					<div class="summary-select-wrapper summary-button">
+						<select
+							value={$selectedMethod}
+							on:change={(e) => {
+								const v = (e.target as HTMLSelectElement).value;
+								if (v === '__add__') {
+									showMethodSelector.set(true);
+								} else {
+									selectedMethod.set(v);
+									showMethodSelector.set(false);
+								}
+							}}
+						>
+							<option value="" disabled hidden>Select Method</option>
+							<option value="__add__">+ Add New Method</option>
+							{#each $brewMethods as m}
+								<option value={m.id}>{m.name}</option>
+							{/each}
+						</select>
+						<span class="icon"><img src="/method.png" alt="Method" /></span>
+						<span id="selected-method">{$selectedMethodObj?.name || `Select a method`}</span>
+					</div>
+				{/snippet}
+				{#snippet children()}
+					<div class="new-input">
+						<input id="new-method" type="text" placeholder="Add new method" bind:value={newMethod} />
+						<button on:click={createMethod} disabled={!newMethod.trim()}>Save</button>
+					</div>
+				{/snippet}
 			</Selector>
 			{#if $selectedMethod}
 				<span class="log-inputs">
