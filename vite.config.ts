@@ -3,6 +3,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 /** @type {import('vite').UserConfig} */
 const config = {
+  ssr: {
+    noExternal: ['@nhost/nhost-js']
+  },
   plugins: [
     sveltekit(),
     VitePWA({
