@@ -1,24 +1,44 @@
+/**
+ * GraphQL Client for BrewTuner
+ *
+ * This module provides GraphQL queries and mutations for interacting with the Nhost backend.
+ * It handles all data operations for roasters, beans, grinders, brew methods, profiles, and grind logs.
+ */
+
 import { nhost } from './nhostClient';
 
-// Define and export core entity types
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+/** Represents a coffee roaster/company */
 export interface Roaster {
   id: string;
   name: string;
 }
+
+/** Represents a specific coffee bean from a roaster */
 export interface Bean {
   id: string;
   name: string;
 }
+
+/** Represents a coffee grinder */
 export interface Grinder {
   id: string;
   name: string;
 }
+
+/** Represents a coffee brewing method (e.g., espresso, pour over) */
 export interface BrewMethod {
   id: string;
   name: string;
 }
 
-// represent a grinder profile including new fields
+/**
+ * Represents a saved grind profile for a specific combination of
+ * bean, grinder, and brew method
+ */
 export interface Profile {
   id: string;
   profile_setting: number;
@@ -27,7 +47,7 @@ export interface Profile {
   adjustment: string;
 }
 
-// represent a single grind log entry
+/** Represents a single grind log entry with all parameters */
 export interface GrindLog {
   id: string;
   setting: number;
@@ -38,13 +58,21 @@ export interface GrindLog {
   created_at: string;
 }
 
-// log a grinder-specific log entry
+/** Represents a grinder-specific log entry */
 export interface GrinderLog {
   id: string;
   created_at: string;
 }
 
-// fetch all roasters
+// ============================================================================
+// Query Functions
+// ============================================================================
+
+/**
+ * Fetches all coffee roasters from the database
+ * @returns Promise resolving to array of roasters
+ * @throws Error if the GraphQL request fails
+ */
 export async function getRoasters() {
     const query = `
     query {
@@ -56,13 +84,16 @@ export async function getRoasters() {
   `;
     const result = await nhost.graphql.request<{
         roasters: { id: string; name: string }[]
-    }>(query); console.log("Roasters fetched:", result);
-    // now result.data.roasters contains your array
-    const roasters = result.data!.roasters;
-    return roasters;
+    }>(query);
+    return result.data!.roasters;
 }
 
-// fetch beans by roaster
+/**
+ * Fetches all beans for a specific roaster
+ * @param roasterId - UUID of the roaster
+ * @returns Promise resolving to array of beans for the given roaster
+ * @throws Error if the GraphQL request fails
+ */
 export async function getBeans(roasterId: string) {
     const query = `
     query ($roaster_id: uuid!) {
@@ -76,12 +107,14 @@ export async function getBeans(roasterId: string) {
     const response = await nhost.graphql.request<{
         beans: { id: string; name: string }[]
     }>(query, variables);
-    console.log("Beans fetched:", response);
-    const beans = response.data!.beans;
-    return beans;
+    return response.data!.beans;
 }
 
-// fetch all grinders
+/**
+ * Fetches all grinders from the database
+ * @returns Promise resolving to array of grinders
+ * @throws Error if the GraphQL request fails
+ */
 export async function getGrinders() {
   const query = `
     query {
@@ -95,7 +128,11 @@ export async function getGrinders() {
   return response.data!.grinders;
 }
 
-// fetch all brew methods
+/**
+ * Fetches all brew methods from the database
+ * @returns Promise resolving to array of brew methods
+ * @throws Error if the GraphQL request fails
+ */
 export async function getBrewMethods() {
   const query = `
     query {
@@ -109,7 +146,23 @@ export async function getBrewMethods() {
   return response.data!.brew_methods;
 }
 
-// fetch or insert a profile
+// ============================================================================
+// Mutation Functions - Profiles
+// ============================================================================
+
+/**
+ * Creates or updates a grind profile
+ * Uses upsert to either insert a new profile or update existing one based on
+ * the unique combination of bean, grinder, and brew method
+ * @param beanId - UUID of the bean
+ * @param grinderId - UUID of the grinder
+ * @param brewMethodId - UUID of the brew method
+ * @param profile_setting - Grinder setting value
+ * @param grams - Coffee weight in grams
+ * @param tamped - Whether the coffee was tamped
+ * @returns Promise resolving to the created/updated profile
+ * @throws Error if the GraphQL request fails
+ */
 export async function upsertProfile(
   beanId: string,
   grinderId: string,
@@ -146,7 +199,21 @@ export async function upsertProfile(
   return response.data!.insert_profiles_one;
 }
 
-// log a grind attempt
+// ============================================================================
+// Mutation Functions - Grind Logs
+// ============================================================================
+
+/**
+ * Logs a single grind attempt for a profile
+ * @param profileId - UUID of the profile
+ * @param setting - Grinder setting value
+ * @param outcome - Description of the outcome/notes
+ * @param adjustment - Assessment of whether to adjust coarser, finer, or keep the same
+ * @param tamped - Whether the coffee was tamped
+ * @param grams - Coffee weight in grams
+ * @returns Promise resolving to the created log entry with id and timestamp
+ * @throws Error if the GraphQL request fails
+ */
 export async function logGrind(profileId: string, setting: number, outcome: string, adjustment: 'coarser' | 'finer' | 'good', tamped: boolean = false, grams: number) {
     const mutation = `
     mutation ($profile_id: uuid!, $setting: numeric!, $outcome: String!, $adjustment: String!, $tamped: Boolean!, $grams: numeric!) {
@@ -170,7 +237,17 @@ export async function logGrind(profileId: string, setting: number, outcome: stri
     return response.data!.insert_grind_logs_one;
 }
 
-// log a grinder-specific log entry
+/**
+ * Logs a grinder-specific entry (separate from profile-based logs)
+ * @param grinderId - UUID of the grinder
+ * @param setting - Grinder setting value
+ * @param outcome - Description of the outcome/notes
+ * @param adjustment - Assessment of whether to adjust coarser, finer, or keep the same
+ * @param tamped - Whether the coffee was tamped
+ * @param grams - Coffee weight in grams
+ * @returns Promise resolving to the created grinder log entry
+ * @throws Error if the GraphQL request fails
+ */
 export async function logGrinderLog(
   grinderId: string,
   setting: number,
@@ -201,7 +278,17 @@ export async function logGrinderLog(
   return response.data!.insert_grinder_logs_one;
 }
 
-// insert a new bean under a roaster
+// ============================================================================
+// Mutation Functions - Create New Entities
+// ============================================================================
+
+/**
+ * Creates a new bean under a specific roaster
+ * @param roasterId - UUID of the parent roaster
+ * @param name - Name of the new bean
+ * @returns Promise resolving to the created bean
+ * @throws Error if the GraphQL request fails
+ */
 export async function addBean(roasterId: string, name: string) {
   const mutation = `
     mutation ($roaster_id: uuid!, $name: String!) {
@@ -218,7 +305,12 @@ export async function addBean(roasterId: string, name: string) {
     return response.data!.insert_beans_one;
 }
 
-// add a new grinder
+/**
+ * Creates a new grinder
+ * @param name - Name of the new grinder
+ * @returns Promise resolving to the created grinder
+ * @throws Error if the GraphQL request fails or no data is returned
+ */
 export async function addGrinder(name: string) {
   const mutation = `
     mutation ($name: String!) {
@@ -235,7 +327,12 @@ export async function addGrinder(name: string) {
   return response.data!.insert_grinders_one;
 }
 
-// add a new brew method
+/**
+ * Creates a new brew method
+ * @param name - Name of the new brew method
+ * @returns Promise resolving to the created brew method
+ * @throws Error if the GraphQL request fails or no data is returned
+ */
 export async function addBrewMethod(name: string) {
   const mutation = `
     mutation ($name: String!) {
@@ -252,9 +349,13 @@ export async function addBrewMethod(name: string) {
   return response.data!.insert_brew_methods_one;
 }
 
-// insert a new roaster
+/**
+ * Creates a new roaster
+ * @param name - Name of the new roaster
+ * @returns Promise resolving to the created roaster
+ * @throws Error if the GraphQL request fails
+ */
 export async function addRoaster(name: string) {
-console.log("Adding roaster:", name);
   const mutation = `
     mutation ($name: String!) {
       insert_roasters_one(object: { name: $name }) {
@@ -267,6 +368,14 @@ console.log("Adding roaster:", name);
   return response.data!.insert_roasters_one;
 }
 
+/**
+ * Updates an existing grind log entry
+ * Only the provided fields will be updated; undefined fields are ignored
+ * @param logId - UUID of the log to update
+ * @param updates - Object containing fields to update (partial update supported)
+ * @returns Promise resolving to the updated grind log
+ * @throws Error if the GraphQL request fails or log is not found
+ */
 export async function updateGrinderLog(
   logId: string,
   updates: {
@@ -332,7 +441,13 @@ export async function updateGrinderLog(
   return response.data!.update_grind_logs_by_pk;
 }
 
-// fetch existing profile by bean, grinder, and brew method
+/**
+ * Fetches an existing profile by its unique combination of bean, grinder, and brew method
+ * @param beanId - UUID of the bean
+ * @param grinderId - UUID of the grinder
+ * @param brewMethodId - UUID of the brew method
+ * @returns Promise resolving to the profile if found, or null if no profile exists
+ */
 export async function getProfile(
   beanId: string,
   grinderId: string,
@@ -364,7 +479,12 @@ export async function getProfile(
   }
 }
 
-// fetch all grind logs for a given profile, most recent first
+/**
+ * Fetches all grind logs for a specific profile, ordered by most recent first
+ * @param profileId - UUID of the profile
+ * @returns Promise resolving to array of grind logs
+ * @throws Error if the GraphQL request fails or no data is returned
+ */
 export async function getGrindLogs(profileId: string): Promise<GrindLog[]> {
   const query = `
     query ($profile_id: uuid!) {
@@ -390,7 +510,12 @@ export async function getGrindLogs(profileId: string): Promise<GrindLog[]> {
   return response.data!.grind_logs;
 }
 
-// delete a grind log by id
+/**
+ * Deletes a grind log entry
+ * @param logId - UUID of the log to delete
+ * @returns Promise resolving to the ID of the deleted log
+ * @throws Error if the GraphQL request fails
+ */
 export async function deleteGrindLog(logId: string): Promise<string> {
   const mutation = `
     mutation ($id: uuid!) {

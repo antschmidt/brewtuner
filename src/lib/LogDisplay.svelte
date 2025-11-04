@@ -1,9 +1,20 @@
 <script lang="ts">
+/**
+ * LogDisplay Component
+ *
+ * Displays, edits, and deletes grind log entries for a profile.
+ * Features:
+ * - Collapsible log viewer with toggle button
+ * - Inline editing of log entries
+ * - Delete functionality with callbacks to parent
+ * - Interactive dial visualization for grinder settings
+ */
+
     import type { GrindLog } from '$lib/graphQLClient';
     import { updateGrinderLog, deleteGrindLog } from '$lib/graphQLClient';
     import Dial from './Dial.svelte';
 
-    // Props, including callbacks for updates and deletions
+    // Props including callbacks for updates and deletions
     let { logs = [], loading = false, show = false, toggle = () => {}, onLogUpdated = (_: GrindLog) => {}, onLogDeleted = (_: string) => {} } = $props();
 
     let editingLogId = $state<string | null>(null);
@@ -63,10 +74,7 @@
 <div class="log-display-container">
     <button
         class="logs-toggle-button"
-        onclick={() => {
-            console.log('LogDisplay: toggle clicked');
-            toggle();
-        }}
+        onclick={toggle}
         aria-expanded={show}
         aria-controls="log-display-content"
     >

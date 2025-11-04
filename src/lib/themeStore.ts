@@ -1,8 +1,19 @@
+/**
+ * Theme Store
+ *
+ * Manages light/dark theme state with localStorage persistence and
+ * automatic system preference detection.
+ */
+
 import { writable } from 'svelte/store';
 
 const THEME_KEY = 'theme';
 
-// Function to get the initial theme from localStorage or system preference
+/**
+ * Gets the initial theme from localStorage or system preference
+ * Falls back to 'light' for SSR environments
+ * @returns The initial theme ('light' or 'dark')
+ */
 function getInitialTheme(): 'light' | 'dark' {
   if (typeof window !== 'undefined') {
     const storedTheme = localStorage.getItem(THEME_KEY) as 'light' | 'dark' | null;
@@ -14,8 +25,10 @@ function getInitialTheme(): 'light' | 'dark' {
   return 'light'; // Default for SSR
 }
 
+/** Writable store containing the current theme */
 export const theme = writable<'light' | 'dark'>(getInitialTheme());
 
+// Subscribe to theme changes and update localStorage + body class
 theme.subscribe((value) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem(THEME_KEY, value);
@@ -27,6 +40,9 @@ theme.subscribe((value) => {
   }
 });
 
+/**
+ * Toggles between light and dark themes
+ */
 export function toggleTheme() {
   theme.update((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'));
 }

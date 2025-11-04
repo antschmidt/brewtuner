@@ -87,7 +87,7 @@
 		grinders.set(await getGrinders());
 		brewMethods.set(await getBrewMethods());
 
-		// restore last selections if present
+		// Restore last selections from localStorage if present
 		const saved = localStorage.getItem('lastSelection');
 		if (saved) {
 			try {
@@ -100,7 +100,6 @@
 					grams: savedGrams
 				} = JSON.parse(saved);
 				if (roaster) {
-					// set roaster and its beans
 					selectedRoaster.set(roaster);
 					const beansList = await getBeans(roaster);
 					beans.set(beansList);
@@ -109,33 +108,19 @@
 				}
 				if (grinder) selectedGrinder.set(grinder);
 				if (method) selectedMethod.set(method);
-				// restore last numeric inputs
 				if (savedSetting != null) setting = savedSetting;
 				if (savedGrams != null) grams = savedGrams;
 			} catch (e) {
 				console.warn('Failed to restore last selections', e);
 			}
 		}
-		// default to showing bean selector if no bean was restored
-		// if (!get(selectedBeanId)) {
-		// 	showBeanSelector.set(true);
-		// }
-		// default to showing roaster selector if no roaster was selected
-		// if (!get(selectedRoaster)) {
-		// 	showRoasterSelector.set(true);
-		// }
 		isRestoring = false;
 	});
 
 	selectedRoaster.subscribe(async (id) => {
-		// clear any previous bean selection and search when roaster changes
+		// Clear any previous bean selection and search when roaster changes
 		selectedBeanId.set('');
 		beanSearch.set('');
-		// auto-open roaster selector if cleared
-		if (!id) {
-			// showRoasterSelector.set(true);
-			return beans.set([]);
-		}
 		if (!id) return beans.set([]);
 		loading.set(true);
 		beans.set(await getBeans(id));
@@ -168,7 +153,6 @@
 				grams ?? 0,
 				tamped
 			);
-			console.log('submitLog (initial profile creation):', profile);
 			lastProfile = {
 				setting: profile.profile_setting,
 				grams: profile.grams,
@@ -184,7 +168,6 @@
 				grams ?? 0,
 				tamped
 			);
-			console.log('submitLog (profile upsert):', profile);
 			lastProfile = {
 				setting: profile.profile_setting,
 				grams: profile.grams,
@@ -283,7 +266,6 @@
 		const beanId = get(selectedBeanId);
 		const grinderId = get(selectedGrinder);
 		const methodId = get(selectedMethod);
-		console.log('loadProfile:', beanId, grinderId, methodId);
 		const profile = await getProfile(beanId, grinderId, methodId);
 		currentProfile = profile;
 		if (currentProfile?.id) {
