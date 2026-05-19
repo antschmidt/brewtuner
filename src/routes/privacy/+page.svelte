@@ -70,7 +70,7 @@
 
 	<h2>Contact</h2>
 	<p>
-		For privacy questions, email <a href="mailto:mail@tonyschmidt.io">mail@tonyschmidt.io</a>.
+		For privacy questions, email <a href="mailto:support@brewtuner.app">support@brewtuner.app</a>.
 	</p>
 
 	<hr />

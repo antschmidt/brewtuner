@@ -118,7 +118,7 @@
 	<div class="cta">
 		<h2>Questions or feedback?</h2>
 		<p>
-			Email <a href="mailto:mail@tonyschmidt.io">mail@tonyschmidt.io</a> — or read the
+			Email <a href="mailto:support@brewtuner.app">support@brewtuner.app</a> — or read the
 			<a href="/support">support page</a> for common questions.
 		</p>
 	</div>

@@ -38,7 +38,7 @@
 	<div class="container footer-inner">
 		<p class="muted">
 			Brew Tuner — a coffee dial-in app for iOS &amp; Android.<br />
-			Made by <a href="https://tonyschmidt.io">Tony Schmidt</a>. Contact: <a href="mailto:mail@tonyschmidt.io">mail@tonyschmidt.io</a>.
+			Made by <a href="https://tonyschmidt.io">Tony Schmidt</a>. Contact: <a href="mailto:support@brewtuner.app">support@brewtuner.app</a>.
 		</p>
 		<p class="muted">© {new Date().getFullYear()} Tony Schmidt. All rights reserved.</p>
 	</div>

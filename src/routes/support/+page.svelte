@@ -75,7 +75,7 @@
 
 	<h2>Contact</h2>
 	<p>
-		Email <a href="mailto:mail@tonyschmidt.io">mail@tonyschmidt.io</a>. Replies typically within a few
+		Email <a href="mailto:support@brewtuner.app">support@brewtuner.app</a>. Replies typically within a few
 		days. Bug reports, feature requests, and "I love this app" notes are all welcome.
 	</p>
 
