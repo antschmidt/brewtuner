@@ -1,0 +1,32 @@
+# GitHub Pages config for the Brew Tuner marketing + docs site.
+#
+# Theme: cayman is a clean, single-column landing-page theme bundled with
+# GitHub Pages. Other zero-config options: minimal, slate, architect, leap-day.
+# To use a custom theme or static HTML instead, remove this file and create an
+# index.html + your own CSS.
+
+title: Brew Tuner
+description: Your brew-by-brew dial-in log. iOS and Android.
+theme: jekyll-theme-cayman
+# Force markdown filenames to lowercase clean URLs without the .html extension.
+# So /privacy.md → /privacy/, /support.md → /support/.
+permalink: /:title/
+
+# Show source links on rendered pages? Default true; turn off for a more
+# product-marketing feel.
+show_downloads: false
+
+# Author info — used by some themes in the footer.
+author:
+  name: Tony Schmidt
+  email: mail@tonyschmidt.io
+
+# Files Jekyll should ignore.
+exclude:
+  - SETUP.md
+  - README.md  # README.md becomes the landing page via index logic below; if
+               # you'd rather use a separate index.md, delete README.md and
+               # rename to index.md.
+
+# If you want README.md to serve as the landing page, GitHub Pages will pick
+# it up automatically. No further config needed.

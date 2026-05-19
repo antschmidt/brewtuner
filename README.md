@@ -1,134 +1,68 @@
-# BrewTuner
+# Brew Tuner
 
-**BrewTuner** is a web application designed to help coffee enthusiasts dial in the perfect grind settings for their coffee brewing. Track your grind profiles, log your results, and achieve consistent, delicious coffee every time.
+**Your brew-by-brew dial-in log.** Pick a bean, pick a grinder, pick a brew method, then log every brew with grind setting, dose, yield, time, and rating. Tap "Adjust &amp; re-brew" to chase the sweet spot one variable at a time.
 
-## Features
+Brew Tuner is a coffee dial-in companion for iOS and Android. Designed for the moment you actually need it: standing at the kitchen counter, coffee-stained fingers, wanting to know what you did last time so you can change one thing.
 
-- **Personalized Grind Profiles**: Create and save settings for each combination of coffee bean, grinder, and brewing method
-- **Grind Logging System**: Track each grind attempt with detailed parameters:
-  - Grinder setting (via interactive dial or numeric input)
-  - Coffee weight in grams
-  - Tamping status
-  - Adjustment rating (coarser/good/finer)
-  - Outcome notes and observations
-  - Automatic timestamps
-- **Profile Management**: Easily select from existing roasters, beans, grinders, and brewing methods, or create new ones on-the-fly
-- **Log History**: View, edit, and delete historical grind logs to compare and optimize your results
-- **Secure Authentication**: Multiple sign-in options including:
-  - Email/password
-  - Magic link (passwordless)
-  - OAuth 2.0 (Google, GitHub)
-  - WebAuthn/Security Keys
-- **Dark Mode**: Automatic theme switching with system preference detection
-- **Progressive Web App (PWA)**: Install as a standalone app with offline support
+---
 
-## Tech Stack
+## Download
 
-- **Frontend**: SvelteKit 2 with Svelte 5 (Rune-based reactivity)
-- **Backend**: Nhost (Backend-as-a-Service with Hasura GraphQL)
-- **Styling**: CSS Custom Properties with responsive design
-- **Build Tool**: Vite 6
-- **Deployment**: Vercel (with serverless adapter)
-- **Package Manager**: pnpm
+<!-- Replace the href values with your actual App Store / Play Store URLs once each app is live. -->
 
-## Getting Started
+[<img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" height="48">](https://apps.apple.com/app/idXXXXXXXXXX)
+&nbsp;
+[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="68">](https://play.google.com/store/apps/details?id=io.tonyschmidt.brewtuner)
 
-### Prerequisites
+_Coming soon on both platforms._
 
-- Node.js 22.x or higher
-- pnpm (or npm/yarn)
+---
 
-### Installation
+## What it does
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/brewtuner.git
-cd brewtuner
-```
+- **Track beans** — roaster, name, origin, varietal, process, roast level, notes
+- **Track grinders** — any dial pattern works: integer steps, fractional, stepless, even negative settings (1Zpresso-style)
+- **Track brew methods** — V60, Chemex, AeroPress, espresso, French press, Moka, Turkish, cold brew, or whatever you invent
+- **Log brews** — full recipe + 1-10 rating + tasting notes + flavor tags
+- **Adjust &amp; re-brew** — duplicate any past brew so you can change one variable and try again
+- **Per-bean dial-in view** — groups your attempts by (grinder, brew method) so you can see how the grind moved across tries
+- **Filter the history** — by bean, grinder, or method to compare like with like
+- **Independent unit prefs** — measure grounds in grams and liquid in ounces if that's how you work
+- **Fully offline** — every screen works without a network connection
+- **No accounts, no ads, no tracking** — your data lives on your device
 
-2. Install dependencies:
-```bash
-pnpm install
-```
+## Backup, not sync
 
-3. Set up environment variables:
+Brew Tuner doesn't use the cloud. Settings → Backup &amp; restore exports your data to a single JSON file you can save anywhere — iCloud Drive, Google Drive, email, AirDrop. Restore on a new device by picking the file back up.
 
-Create a `.env` file in the root directory with your Nhost credentials:
-```env
-PUBLIC_NHOST_SUBDOMAIN=your-subdomain
-PUBLIC_NHOST_REGION=your-region
-```
+There's no account to lose, no server to outage, no privacy trade. Just a coffee log that's actually yours.
 
-4. Start the development server:
-```bash
-pnpm dev
-```
+---
 
-The app will be available at `http://localhost:5173`
+## Screenshots
 
-## Development
+<!-- TODO: replace these placeholders with real captures from the iPhone simulator
+     once the App Store submission package is ready. See assets/ folder. -->
 
-### Available Scripts
+| Home | Log a brew | Dial-in view |
+|---|---|---|
+| _coming soon_ | _coming soon_ | _coming soon_ |
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm preview` - Preview production build
-- `pnpm check` - Run Svelte type checking
-- `pnpm check:watch` - Run type checking in watch mode
-- `pnpm format` - Format code with Prettier
-- `pnpm lint` - Lint code with ESLint
+---
 
-### Project Structure
+## Pages
 
-```
-src/
-├── routes/
-│   ├── +page.svelte          # Main application interface
-│   ├── +layout.svelte        # Authentication wrapper and layout
-│   ├── privacy/              # Privacy policy page
-│   └── terms/                # Terms of service page
-├── lib/
-│   ├── graphQLClient.ts      # GraphQL queries, mutations, and types
-│   ├── nhostClient.ts        # Nhost configuration
-│   ├── themeStore.ts         # Theme management store
-│   ├── Dial.svelte           # Interactive grinder setting dial
-│   ├── LogDisplay.svelte     # Grind log viewer and editor
-│   ├── Selector.svelte       # Reusable collapsible selector component
-│   └── [Bean|Grinder|BrewMethod]Selector.svelte
-└── app.css                   # Global styles and CSS variables
-```
+- [Privacy policy](./privacy/)
+- [Support](./support/)
 
-## Deployment
+## For developers
 
-The application is configured for deployment on Vercel with the `@sveltejs/adapter-vercel` adapter.
+The Brew Tuner app is built with SvelteKit + Capacitor — one codebase for both iOS and Android. The source code lives in a separate repository.
 
-To deploy:
+If you're an Apple App Store or Google Play reviewer looking at this site to verify the app: see [App Store submission notes](./app-store-submission/) for context on review.
 
-```bash
-pnpm build
-```
+---
 
-Then deploy the `.vercel/output` directory or connect your repository to Vercel for automatic deployments.
+## Contact
 
-## Database Schema
-
-The application uses the following main entities:
-
-- **Roasters**: Coffee roasting companies
-- **Beans**: Specific coffee beans from roasters
-- **Grinders**: Coffee grinding equipment
-- **Brew Methods**: Brewing techniques (espresso, pour over, etc.)
-- **Profiles**: Saved settings for bean + grinder + brew method combinations
-- **Grind Logs**: Individual grind attempt records with all parameters
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-[Add your license here]
-
-## Acknowledgments
-
-Built with [SvelteKit](https://kit.svelte.dev/) and powered by [Nhost](https://nhost.io/)
+For privacy questions, support, feature requests, or "I love this app" notes: **mail@tonyschmidt.io**.
