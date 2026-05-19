@@ -1,93 +1,152 @@
-/* Import modern typefaces */
-@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;700&family=Inter:wght@400;500;700&family=Roboto+Slab:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;500;700&display=swap');
 
 :root {
-	--color-bg: #F8F9FA; /* Lighter, cleaner background */
-	--color-surface: #FFFFFF; /* For cards/modal elements */
-	--color-primary: #343A40; /* Darker primary for text and important elements */
-	--color-accent: #A57E65; /* Earthy, sophisticated accent */
-	--color-cta: #4A5568; /* Muted Call to Action */
-	--color-text-primary: #212529; /* Main text color */
-	--color-text-secondary: #6C757D; /* Lighter text for secondary info */
-	--color-input-bg: #FFFFFF;
-	--color-border: #DEE2E6; /* Subtle borders */
-	--border-radius-sm: 4px;
-	--border-radius-md: 8px;
-	--transition-speed: 0.2s;
-	--font-family-sans: 'Inter', sans-serif;
-	--font-family-serif: 'Roboto Slab', serif; /* For headings or accents */
-	--font-family-display: 'Clash Display', sans-serif; /* For special display text */
-	--color-bg-icon: transparent;
+	--color-bg: #faf7f4;
+	--color-surface: #ffffff;
+	--color-surface-alt: #f1ece6;
+	--color-primary: #2a2421;
+	--color-accent: #a57e65;
+	--color-accent-hover: #8d6a55;
+	--color-text-primary: #2a2421;
+	--color-text-secondary: #6c645e;
+	--color-border: #e6ddd4;
+	--color-link: #8d6a55;
+	--max-width: 64rem;
+	--radius-sm: 4px;
+	--radius-md: 8px;
+	--radius-lg: 14px;
+	--shadow-sm: 0 1px 2px rgba(42, 36, 33, 0.06);
+	--shadow-md: 0 4px 14px rgba(42, 36, 33, 0.08);
+	--font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+	--font-serif: 'Roboto Slab', Georgia, serif;
+	--transition: 0.2s ease;
 }
 
-body.dark-mode {
-	--color-bg: #1A202C; /* Dark background */
-	--color-surface: #2D3748; /* Dark surface for cards/modals */
-	--color-primary: #E2E8F0; /* Light primary for text in dark mode */
-	--color-accent: #B9957E; /* Adjusted accent for dark mode */
-	--color-cta: #718096; /* Adjusted CTA for dark mode */
-	--color-text-primary: #dadbb7; /* Main text color for dark mode */
-	--color-text-secondary: #A0AEC0; /* Lighter text for secondary info in dark mode */
-	--color-input-bg: #2D3748; /* Dark input background */
-	--color-border: #4A5568; /* Adjusted border for dark mode */
-	--color-bg-icon: #a0aec03d; /* Subtle background for icons in dark mode */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-bg: #1c1815;
+		--color-surface: #2a2421;
+		--color-surface-alt: #332b27;
+		--color-primary: #f1ece6;
+		--color-accent: #c39880;
+		--color-accent-hover: #d4ab94;
+		--color-text-primary: #f1ece6;
+		--color-text-secondary: #b8aea4;
+		--color-border: #3d342f;
+		--color-link: #d4ab94;
+		--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+		--shadow-md: 0 4px 14px rgba(0, 0, 0, 0.3);
+	}
 }
 
+* {
+	box-sizing: border-box;
+}
+
+html,
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text-primary);
-  font-family: var(--font-family-sans);
-  transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
-  margin: 0; /* Ensure no default body margin */
-}
-
-/* Generic input/select/textarea styling using theme variables */
-select,
-input[type='text'],
-input[type='number'],
-input[type='email'], /* Added email type */
-input[type='password'], /* Added password type */
-textarea {
-	width: 100%;
-	padding: 0.85rem 1rem;
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius-sm);
-	background: var(--color-input-bg);
-	font-family: inherit;
-	font-size: 0.95rem;
+	margin: 0;
+	padding: 0;
+	background-color: var(--color-bg);
 	color: var(--color-text-primary);
-	transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-	box-sizing: border-box; /* Ensure padding doesn't increase width */
+	font-family: var(--font-sans);
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
-select:focus,
-input[type='text']:focus,
-input[type='number']:focus,
-input[type='email']:focus,
-input[type='password']:focus,
-textarea:focus {
-	outline: none;
-	border-color: var(--color-accent);
-	box-shadow: 0 0 0 2px rgba(var(--color-accent), 0.2); /* Focus ring */
+h1,
+h2,
+h3,
+h4 {
+	font-family: var(--font-serif);
+	color: var(--color-text-primary);
+	line-height: 1.25;
+	margin-top: 0;
 }
 
-button {
-	padding: 0.75rem 1.25rem; /* Standardized padding */
-	border: none;
-	background: var(--color-cta);
-	color: var(--color-surface); /* Text color that contrasts with CTA */
-	border-radius: var(--border-radius-sm);
-	cursor: pointer;
-	font-family: var(--font-family-sans);
-	font-weight: 500;
-	transition: background-color var(--transition-speed) ease;
+h1 {
+	font-size: clamp(2rem, 5vw, 3rem);
+	font-weight: 700;
+	letter-spacing: -0.02em;
 }
 
-button:hover {
-	background: var(--color-primary); /* Darken/change on hover */
+h2 {
+	font-size: clamp(1.5rem, 3vw, 2rem);
+	font-weight: 600;
+	margin-top: 2.5rem;
+	margin-bottom: 1rem;
 }
 
-button:disabled {
-	background-color: var(--color-text-secondary);
-	cursor: not-allowed;
+h3 {
+	font-size: 1.2rem;
+	font-weight: 600;
+	margin-top: 1.75rem;
+	margin-bottom: 0.5rem;
+}
+
+p {
+	margin: 0 0 1rem 0;
+	color: var(--color-text-primary);
+}
+
+a {
+	color: var(--color-link);
+	text-decoration: none;
+	transition: color var(--transition);
+}
+
+a:hover {
+	color: var(--color-accent-hover);
+	text-decoration: underline;
+}
+
+ul,
+ol {
+	padding-left: 1.5rem;
+	margin: 0 0 1rem 0;
+}
+
+li {
+	margin-bottom: 0.4rem;
+}
+
+strong {
+	color: var(--color-text-primary);
+	font-weight: 600;
+}
+
+hr {
+	border: 0;
+	border-top: 1px solid var(--color-border);
+	margin: 2.5rem 0;
+}
+
+code {
+	font-family: 'SF Mono', Menlo, Consolas, monospace;
+	background: var(--color-surface-alt);
+	padding: 0.15rem 0.4rem;
+	border-radius: var(--radius-sm);
+	font-size: 0.9em;
+}
+
+.container {
+	max-width: var(--max-width);
+	margin: 0 auto;
+	padding: 0 1.25rem;
+}
+
+.prose {
+	max-width: 42rem;
+	margin: 0 auto;
+}
+
+.prose h2,
+.prose h3 {
+	margin-top: 2rem;
+}
+
+.muted {
+	color: var(--color-text-secondary);
+	font-size: 0.95rem;
 }

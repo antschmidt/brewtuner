@@ -1,518 +1,146 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { nhost } from '$lib/nhostClient';
-	import { writable } from 'svelte/store';
-	import { theme, toggleTheme } from '$lib/themeStore';
+	import '../app.css';
 	import { page } from '$app/stores';
-	import '../app.css'; // Import global styles
 
-	const user = writable(nhost.getUserSession()?.user ?? null);
-	const showAuthOverlay = writable(false); // Store for overlay visibility
+	const nav = [
+		{ href: '/', label: 'Home' },
+		{ href: '/support', label: 'Support' },
+		{ href: '/privacy', label: 'Privacy' },
+		{ href: '/changelog', label: 'Changelog' }
+	];
 
-	onMount(async () => {
-		if ('serviceWorker' in navigator) {
-			navigator.serviceWorker.ready.then((reg) => {
-				reg.addEventListener('updatefound', () => {
-					// notify user to refresh
-				});
-			});
-		}
-		// Check for current session
-		const session = nhost.getUserSession();
-		user.set(session?.user ?? null);
-	});
-
-	let email = '';
-	let password = '';
-	let isLoginView = true;
-	let activeAuthView: 'initial' | 'emailPassword' | 'magicLink' | 'securityKey' = 'initial';
-
-	function toggleAuthModeView(targetIsLoginView: boolean) {
-		isLoginView = targetIsLoginView;
-		activeAuthView = 'initial';
-		email = '';
-		password = '';
+	$: pathname = $page.url.pathname;
+	function isActive(href: string) {
+		if (href === '/') return pathname === '/';
+		return pathname === href || pathname.startsWith(href + '/');
 	}
-
-	const login = async () => {
-		try {
-			const response = await nhost.auth.signInEmailPassword({ email, password });
-			if (response.body.session?.user) {
-				user.set(response.body.session.user);
-			}
-		} catch (error: any) {
-			alert(`Login error: ${error.message}`);
-		}
-	};
-
-	const logout = async () => {
-		try {
-			await nhost.auth.signOut({ all: true });
-			user.set(null);
-		} catch (error: any) {
-			console.error('Logout error:', error);
-		}
-	};
-
-	const signup = async () => {
-		try {
-			const response = await nhost.auth.signUpEmailPassword({ email, password });
-			if (response.body.session?.user) {
-				user.set(response.body.session.user);
-			} else {
-				alert('Signup successful! Please check your email to verify your account.');
-				toggleAuthModeView(true);
-			}
-		} catch (error: any) {
-			alert(error.message);
-		}
-	};
-
-	const signInWithGoogle = async () => {
-		try {
-			const url = nhost.auth.signInProviderURL('google');
-			window.location.href = url;
-		} catch (error: any) {
-			alert(`Error signing in with Google: ${error.message}`);
-		}
-	};
-
-	const signInWithGitHub = async () => {
-		try {
-			const url = nhost.auth.signInProviderURL('github');
-			window.location.href = url;
-		} catch (error: any) {
-			alert(`Error signing in with GitHub: ${error.message}`);
-		}
-	};
-
-	const sendMagicLink = async () => {
-		if (!email) {
-			alert('Please enter your email address.');
-			return;
-		}
-		try {
-			await nhost.auth.signInPasswordlessEmail({ email });
-			alert('Magic link sent! Check your email to complete the sign-in process.');
-			activeAuthView = 'initial';
-		} catch (error: any) {
-			alert(`Error sending magic link: ${error.message}`);
-		}
-	};
-
-	const signUpWithSecurityKey = async () => {
-		if (!email) {
-			alert('Please enter your email address to register with a security key.');
-			return;
-		}
-		try {
-			await nhost.auth.signUpWebauthn({ email });
-			alert(
-				'Follow the browser prompts to register your security key. You might be asked to verify your email first if this is a new account.'
-			);
-			// The webauthn flow is multi-step, user will need to complete it
-			toggleAuthModeView(true);
-		} catch (error: any) {
-			alert(`Error signing up with security key: ${error.message}`);
-		}
-	};
-
-	const signInWithSecurityKey = async () => {
-		if (!email) {
-			alert('Please enter your email address to sign in with a security key.');
-			return;
-		}
-		try {
-			await nhost.auth.signInWebauthn({ email });
-			// The webauthn flow is multi-step, user will need to complete it
-			alert('Follow the browser prompts to sign in with your security key.');
-		} catch (error: any) {
-			alert(`Error signing in with security key: ${error.message}`);
-		}
-	};
 </script>
 
-{#if $user}
-	<slot />
-	<nav>
-		<button on:click={toggleTheme} aria-label="Toggle theme" class="theme-toggle">
-			{$theme === 'light' ? '🌙' : '☀️'}
-		</button>
-		<div>{$user.email}</div>
-		<button on:click={logout}>Logout</button>
-	</nav>
-{:else if $page.url.pathname === '/privacy' || $page.url.pathname === '/terms'}
-	<!-- Removed $ from $page -->
-	<slot />
-{:else}
-	<div class="landing-hero">
-		<h1>Welcome to BrewTuner</h1>
-		<p>
-			BrewTuner helps you dial in the perfect coffee grind each time. Select your roaster, bean,
-			grinder, and brewing method to create and track your grind profiles and results. Log your
-			outcomes and adjustments, then review your grind logs to achieve consistent, delicious coffee.
-		</p>
-		<ul class="features-list">
-			<li>
-				<strong>Personalized Profiles</strong>: Save settings for each coffee and grinder
-				combination.
-			</li>
-			<li><strong>Grind Logs</strong>: Track your trials with notes, outcomes, and adjustments.</li>
-			<li><strong>Easy Comparison</strong>: Review past logs side by side to optimize taste.</li>
-			<li>
-				<strong>Secure Access</strong>: Sign in with email, magic link, OAuth, or security keys.
-			</li>
-		</ul>
-		<button
-			class="cta-button"
-			on:click={() => {
-				$showAuthOverlay = true;
-				toggleAuthModeView(true);
-			}}
-		>
-			Get Started
-		</button>
+<header class="site-header">
+	<div class="container header-inner">
+		<a class="brand" href="/" aria-label="Brew Tuner home">
+			<span class="brand-mark" aria-hidden="true">☕</span>
+			<span class="brand-name">Brew Tuner</span>
+		</a>
+		<nav aria-label="Primary">
+			{#each nav as item}
+				<a href={item.href} class:active={isActive(item.href)}>{item.label}</a>
+			{/each}
+		</nav>
 	</div>
+</header>
 
-	{#if $showAuthOverlay}
-		<div
-			class="login-page-wrapper"
-			role="dialog"
-			aria-modal="true"
-			aria-labelledby="auth-dialog-title"
-		>
-			<div class="login-container">
-				<button
-					class="close-auth-overlay"
-					on:click={() => ($showAuthOverlay = false)}
-					aria-label="Close authentication panel">&times;</button
-				>
-				<h2 id="auth-dialog-title">{isLoginView ? 'Login' : 'Sign Up'}</h2>
+<main>
+	<slot />
+</main>
 
-				{#if activeAuthView === 'initial'}
-					<div class="auth-method-buttons">
-						<button on:click={() => (activeAuthView = 'emailPassword')}>
-							Continue with Email/Password
-						</button>
-						<button class="oauth-button" on:click={() => (activeAuthView = 'magicLink')}>
-							{isLoginView ? 'Sign In' : 'Sign Up'} with Magic Link
-						</button>
-						<button class="oauth-button" on:click={() => (activeAuthView = 'securityKey')}>
-							{isLoginView ? 'Sign In' : 'Sign Up'} with Security Key
-						</button>
-					</div>
-
-					<div class="oauth-buttons">
-						<button
-							class="oauth-button"
-							on:click={signInWithGoogle}
-							aria-label="Sign in with Google"
-						>
-							<span>Sign in with Google</span>
-						</button>
-						<button
-							class="oauth-button"
-							on:click={signInWithGitHub}
-							aria-label="Sign in with GitHub"
-						>
-							<span>Sign in with GitHub</span>
-						</button>
-					</div>
-					<button class="toggle-auth-mode" on:click={() => toggleAuthModeView(!isLoginView)}>
-						{isLoginView ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
-					</button>
-				{:else if activeAuthView === 'emailPassword'}
-					<input type="email" placeholder="Email" bind:value={email} />
-					<input type="password" placeholder="Password" bind:value={password} />
-					<button class="auth-primary-action" on:click={isLoginView ? login : signup}>
-						{isLoginView ? 'Login' : 'Sign Up'}
-					</button>
-					<button class="toggle-auth-mode" on:click={() => (activeAuthView = 'initial')}
-						>Back to options</button
-					>
-				{:else if activeAuthView === 'magicLink'}
-					<input type="email" placeholder="Email" bind:value={email} />
-					<button class="oauth-button" on:click={sendMagicLink}>Send Magic Link</button>
-					<button class="toggle-auth-mode" on:click={() => (activeAuthView = 'initial')}
-						>Back to options</button
-					>
-				{:else if activeAuthView === 'securityKey'}
-					<input type="email" placeholder="Email (required for Security Key)" bind:value={email} />
-					<button
-						class="oauth-button"
-						on:click={isLoginView ? signInWithSecurityKey : signUpWithSecurityKey}
-					>
-						{isLoginView ? 'Sign In' : 'Sign Up'} with Security Key
-					</button>
-					<button class="toggle-auth-mode" on:click={() => (activeAuthView = 'initial')}
-						>Back to options</button
-					>
-				{/if}
-
-				<div class="legal-links">
-					<a href="/terms">Terms of Service</a>
-					<a href="/privacy">Privacy Policy</a>
-				</div>
-			</div>
-		</div>
-	{/if}
-{/if}
+<footer class="site-footer">
+	<div class="container footer-inner">
+		<p class="muted">
+			Brew Tuner — a coffee dial-in app for iOS &amp; Android.<br />
+			Made by <a href="https://tonyschmidt.io">Tony Schmidt</a>. Contact: <a href="mailto:mail@tonyschmidt.io">mail@tonyschmidt.io</a>.
+		</p>
+		<p class="muted">© {new Date().getFullYear()} Tony Schmidt. All rights reserved.</p>
+	</div>
+</footer>
 
 <style>
-	/* Base styles for input, button, nav, .theme-toggle should remain as they are if they were working */
-	/* Assuming these are already present and correct from app.css or earlier in this style block */
-
-	.login-page-wrapper {
-		/* Reverted to overlay style */
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent backdrop */
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		z-index: 1000; /* Ensure it's on top */
-		padding: 1rem; /* Padding for the backdrop, useful on small screens */
-	}
-
-	.login-container {
-		position: relative; /* For positioning the close button */
-		margin: 0; /* Centered by flex wrapper */
-		max-width: 420px; /* Slightly wider */
-		width: 100%;
-		background-color: var(--color-surface);
-		padding: 2.5rem; /* Increased padding */
-		border-radius: var(--border-radius-md);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer, more modern shadow */
-		color: var(--color-text-primary);
-		display: flex;
-		flex-direction: column;
-	}
-
-	#auth-dialog-title {
-		text-align: center;
-		font-size: 1.75rem;
-		font-weight: 700;
-		color: var(--color-text-primary);
-		margin-bottom: 1.5rem;
-		font-family: var(--font-family-display);
-	}
-
-	.auth-primary-action {
-		width: 100%;
-		background-color: var(--color-accent);
-		color: var(--color-surface);
-		padding: 0.85rem;
-		font-size: 1rem;
-		font-weight: 500;
-		margin-top: 0.5rem;
-		margin-bottom: 1rem;
-		border-radius: var(--border-radius-sm); /* Ensure it uses theme variable */
-		cursor: pointer;
-		transition: background-color var(--transition-speed) ease;
-	}
-	.auth-primary-action:hover {
-		background-color: var(--color-primary);
-	}
-
-	.auth-method-buttons,
-	.oauth-buttons {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		margin-top: 1.5rem;
-	}
-
-	.oauth-buttons {
-		padding-top: 1.5rem;
-		border-top: 1px solid var(--color-border);
-	}
-
-	/* Ensure buttons within these containers don't have extra bottom margin if gap is used */
-	.auth-method-buttons button,
-	.auth-method-buttons .oauth-button,
-	.oauth-buttons .oauth-button {
-		margin-bottom: 0;
-	}
-
-	.toggle-auth-mode {
-		background: none;
-		border: none;
-		color: var(--color-accent);
-		cursor: pointer;
-		padding: 0.5rem 0;
-		margin-top: 1.5rem;
-		text-decoration: underline;
-		text-align: center;
-		width: 100%;
-	}
-	input {
-		margin-bottom: 1rem;
-	}
-
-	.toggle-auth-mode:hover {
-		color: var(--color-primary);
-	}
-
-	.close-auth-overlay {
-		position: absolute;
-		top: 0.75rem; /* Adjusted for new padding in .login-container */
-		right: 0.75rem;
-		background: transparent;
-		border: none;
-		font-size: 1.75rem; /* Made slightly larger */
-		color: var(--color-text-secondary);
-		cursor: pointer;
-		padding: 0.5rem;
-		line-height: 1;
-	}
-	.close-auth-overlay:hover {
-		color: var(--color-text-primary);
-	}
-
-	/* Styles for landing-hero, features-list, cta-button are assumed to be fine or styled elsewhere */
-	.landing-hero {
-		text-align: center;
-		padding: 2rem;
+	.site-header {
 		background: var(--color-surface);
-		color: var(--color-text-primary);
-	}
-	.landing-hero h1 {
-		font-size: 2rem;
-		margin-bottom: 1rem;
-	}
-	.landing-hero p {
-		max-width: 600px;
-		margin: 0 auto 1.5rem auto; /* Added bottom margin to paragraph */
-		font-size: 1rem;
-		color: var(--color-text-secondary);
-	}
-	.features-list {
-		list-style: none;
-		margin: 1rem 0 1.5rem;
-		padding: 0;
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: 1rem;
-	}
-	.features-list li {
-		background: var(--color-surface-alt);
-		padding: 1rem;
-		border-radius: var(--border-radius-sm);
-		text-align: left;
-		font-size: 0.95rem;
-		color: var(--color-text-primary);
-	}
-	.cta-button {
-		background: var(--color-accent);
-		color: var(--color-surface);
-		padding: 0.75rem 2rem;
-		font-size: 1rem;
-		border: none;
-		border-radius: var(--border-radius-md);
-		cursor: pointer;
-		transition: background-color var(--transition-speed) ease;
-		margin-top: 1rem;
-	}
-	.cta-button:hover {
-		background: var(--color-primary);
+		border-bottom: 1px solid var(--color-border);
+		position: sticky;
+		top: 0;
+		z-index: 10;
+		backdrop-filter: saturate(160%) blur(8px);
 	}
 
-	/* Logged-in header/nav styling */
+	.header-inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding-top: 0.85rem;
+		padding-bottom: 0.85rem;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--color-text-primary);
+		text-decoration: none;
+		font-family: var(--font-serif);
+		font-weight: 700;
+		font-size: 1.15rem;
+	}
+
+	.brand:hover {
+		text-decoration: none;
+		color: var(--color-accent);
+	}
+
+	.brand-mark {
+		font-size: 1.25rem;
+	}
+
 	nav {
 		display: flex;
-		justify-content: space-between;
-		width: 90%;
-		align-items: center;
-		padding: 1rem;
-		margin-bottom: 2rem;
+		gap: 0.25rem;
+		flex-wrap: wrap;
+	}
+
+	nav a {
+		padding: 0.4rem 0.75rem;
+		border-radius: var(--radius-sm);
+		font-size: 0.95rem;
+		color: var(--color-text-secondary);
+		transition: background-color var(--transition), color var(--transition);
+	}
+
+	nav a:hover {
+		text-decoration: none;
+		background-color: var(--color-surface-alt);
+		color: var(--color-text-primary);
+	}
+
+	nav a.active {
+		color: var(--color-accent);
+		font-weight: 600;
+	}
+
+	main {
+		min-height: calc(100vh - 12rem);
+		padding: 2rem 0 4rem 0;
+	}
+
+	.site-footer {
 		background: var(--color-surface);
-    border: 0px;
-		color: var(--color-text-primary);
-    border-radius: var(--border-radius-sm);
+		border-top: 1px solid var(--color-border);
+		padding: 2rem 0;
+		margin-top: 2rem;
 	}
 
-	button {
-		padding: 0.75rem;
-		border: none;
-		background: var(--color-cta);
-		color: var(--color-surface);
-		border-radius: var(--border-radius-sm);
-		cursor: pointer;
-		transition: background-color var(--transition-speed) ease;
-	}
-
-	button:hover {
-		background: var(--color-primary);
-	}
-
-	.theme-toggle {
-		background: transparent;
-		font-size: 1.5rem;
-		cursor: pointer;
-		border: 0;
-		padding: 0;
-		margin: 0;
-		color: var(--color-text-primary);
-	}
-
-	.theme-toggle:hover {
-		background-color: var(--color-surface);
-	}
-
-	@media (max-width: 600px) {
-		.login-container {
-			padding: 2rem;
-			/* For overlay, ensure it doesn't get too tall and becomes scrollable */
-			max-height: 90vh;
-			overflow-y: auto;
-		}
-		#auth-dialog-title {
-			font-size: 1.5rem;
-		}
-		.landing-hero h1 {
-			font-size: 1.8rem;
-		}
-		.features-list {
-			grid-template-columns: 1fr;
-		}
-	}
-	/* General button styling from app.css will apply to .oauth-button if not overridden here */
-	/* Ensure .oauth-button specific styles are minimal if relying on global button styles */
-	.oauth-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		/* padding: 0.75rem; */ /* Consider if global button style is better */
-		border-radius: var(--border-radius-sm);
-		cursor: pointer;
-		transition: background-color var(--transition-speed) ease;
-		border: 0px solid var(--color-border);
-		background-color: var(--color-surface);
-		color: var(--color-text-primary);
-		/* width: 100%; */ /* Make OAuth buttons full width like primary action */
-	}
-	.oauth-button:hover {
-		background-color: var(--color-input-bg);
-	}
-
-	.legal-links {
-		margin-top: 1.5rem;
+	.footer-inner {
 		text-align: center;
+	}
+
+	.footer-inner p {
+		margin: 0.25rem 0;
 		font-size: 0.875rem;
 	}
 
-	.legal-links a {
-		color: var(--color-text-secondary);
-		text-decoration: none;
-		margin: 0 0.5rem;
-	}
-
-	.legal-links a:hover {
-		text-decoration: underline;
-		color: var(--color-primary);
+	@media (max-width: 480px) {
+		.header-inner {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
+		}
+		nav {
+			width: 100%;
+		}
+		nav a {
+			padding: 0.4rem 0.6rem;
+		}
 	}
 </style>

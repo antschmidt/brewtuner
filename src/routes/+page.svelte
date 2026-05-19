@@ -1,897 +1,279 @@
-<script lang="ts">
-	import { onMount } from 'svelte';
-	import { writable, derived, get } from 'svelte/store';
-	import {
-		getRoasters,
-		getBeans,
-		addBean,
-		getGrinders,
-		getBrewMethods,
-		upsertProfile,
-		logGrind,
-		logGrinderLog,
-		addGrinder,
-		addBrewMethod,
-		getProfile,
-		getGrindLogs,
-		addRoaster
-	} from '$lib/graphQLClient';
-	import type { GrindLog } from '$lib/graphQLClient';
-	import LogDisplay from '$lib/LogDisplay.svelte';
-	import { fly, scale } from 'svelte/transition';
-	import Dial from '$lib/Dial.svelte';
-	import Selector from '$lib/Selector.svelte';
-	import '../app.css'; // Import global styles
+<svelte:head>
+	<title>Brew Tuner — your brew-by-brew dial-in log</title>
+	<meta
+		name="description"
+		content="Brew Tuner is a coffee dial-in companion for iOS and Android. Track beans, grinders, and brew methods. Log every brew. Chase the sweet spot one variable at a time."
+	/>
+</svelte:head>
 
-	interface Roaster {
-		id: string;
-		name: string;
-	}
-	interface Bean {
-		id: string;
-		name: string;
-	}
-	interface Grinder {
-		id: string;
-		name: string;
-	}
-	interface BrewMethod {
-		id: string;
-		name: string;
-	}
-	// Removed unused Profile interface since we use server types directly
+<section class="hero">
+	<div class="container hero-inner">
+		<p class="eyebrow">For iOS &amp; Android</p>
+		<h1>Your brew-by-brew dial-in log.</h1>
+		<p class="lede">
+			Pick a bean, pick a grinder, pick a brew method, then log every brew with grind setting, dose,
+			yield, time, and rating. Tap <strong>Adjust &amp; re-brew</strong> to chase the sweet spot one
+			variable at a time.
+		</p>
 
-	const roasters = writable<Roaster[]>([]);
-	let lastProfile: { setting: number; grams: number; tamped: boolean } | null = null;
-	const selectedRoaster = writable<string>('');
-	const beans = writable<Bean[]>([]);
-	const beanSearch = writable<string>('');
-	const loading = writable(false);
-	const selectedBeanId = writable<string>('');
-	const showBeanSelector = writable(false);
-	let isRestoring = true;
-	const showGrinderSelector = writable(false);
-	const showMethodSelector = writable(false);
-	const grinders = writable<Grinder[]>([]);
-	const brewMethods = writable<BrewMethod[]>([]);
-	const selectedGrinder = writable<string>('');
-	const selectedMethod = writable<string>('');
-	let newGrinder = '';
-	let newMethod = '';
-	let setting: number | null = 0;
-	let outcomeText = '';
-	let adjustment: 'coarser' | 'good' | 'finer' = 'good';
-	let grams: number | null = 0;
-	let tamped = false;
-	let currentProfile: {
-		id: string;
-		profile_setting: number;
-		grams: number;
-		tamped: boolean;
-	} | null = null;
-	let loadingProfile = false;
-	let logs: GrindLog[] = [];
-	import { writable as writableLocal } from 'svelte/store';
-	const showLogs = writableLocal(false);
-	const loadingLogs = writableLocal(false);
-	let showLogsLocal = false;
-	const showRoasterSelector = writable(false);
-	let newRoaster = '';
-	let newBean = '';
+		<div class="badges">
+			<a
+				class="store-badge"
+				href="https://apps.apple.com/app/idXXXXXXXXXX"
+				aria-label="Download on the App Store"
+			>
+				<span class="store-eyebrow">Download on the</span>
+				<span class="store-name">App Store</span>
+			</a>
+			<a
+				class="store-badge"
+				href="https://play.google.com/store/apps/details?id=io.tonyschmidt.brewtuner"
+				aria-label="Get it on Google Play"
+			>
+				<span class="store-eyebrow">Get it on</span>
+				<span class="store-name">Google Play</span>
+			</a>
+		</div>
+		<p class="muted coming-soon">Coming soon on both platforms.</p>
+	</div>
+</section>
 
-	onMount(async () => {
-		const fetchedRoasters = await getRoasters();
-		roasters.set(fetchedRoasters);
-
-		// fetch grinders & methods
-		grinders.set(await getGrinders());
-		brewMethods.set(await getBrewMethods());
-
-		// Restore last selections from localStorage if present
-		const saved = localStorage.getItem('lastSelection');
-		if (saved) {
-			try {
-				const {
-					roaster,
-					bean,
-					grinder,
-					method,
-					setting: savedSetting,
-					grams: savedGrams
-				} = JSON.parse(saved);
-				if (roaster) {
-					selectedRoaster.set(roaster);
-					const beansList = await getBeans(roaster);
-					beans.set(beansList);
-					if (bean) showBeanSelector.set(false);
-					selectedBeanId.set(bean);
-				}
-				if (grinder) selectedGrinder.set(grinder);
-				if (method) selectedMethod.set(method);
-				if (savedSetting != null) setting = savedSetting;
-				if (savedGrams != null) grams = savedGrams;
-			} catch (e) {
-				console.warn('Failed to restore last selections', e);
-			}
-		}
-		isRestoring = false;
-	});
-
-	selectedRoaster.subscribe(async (id) => {
-		// Clear any previous bean selection and search when roaster changes
-		selectedBeanId.set('');
-		beanSearch.set('');
-		if (!id) return beans.set([]);
-		loading.set(true);
-		beans.set(await getBeans(id));
-		loading.set(false);
-		showRoasterSelector.set(false);
-		showBeanSelector.set(false);
-		showGrinderSelector.set(false);
-		showMethodSelector.set(false);
-	});
-
-	const filteredBeans = derived([beans, beanSearch], ([$beans, $search]) =>
-		$search ? $beans.filter((b) => b.name.toLowerCase().includes($search.toLowerCase())) : $beans
-	);
-
-	const selectedBean = derived([beans, selectedBeanId], (values) => {
-		const [$beans, $id] = values;
-		return $beans.find((b) => b.id === $id) || null;
-	});
-
-	async function submitLog() {
-		const beanId = get(selectedBeanId);
-		let profileId: string;
-		// create profile if none exists, update only on 'good'
-		if (!currentProfile?.id) {
-			const profile = await upsertProfile(
-				beanId,
-				get(selectedGrinder),
-				get(selectedMethod),
-				setting ?? 0,
-				grams ?? 0,
-				tamped
-			);
-			lastProfile = {
-				setting: profile.profile_setting,
-				grams: profile.grams,
-				tamped: profile.tamped
-			};
-			profileId = profile.id;
-		} else if (adjustment === 'good') {
-			const profile = await upsertProfile(
-				beanId,
-				get(selectedGrinder),
-				get(selectedMethod),
-				setting ?? 0,
-				grams ?? 0,
-				tamped
-			);
-			lastProfile = {
-				setting: profile.profile_setting,
-				grams: profile.grams,
-				tamped: profile.tamped
-			};
-			profileId = profile.id;
-		} else {
-			// existing profile, no update
-			profileId = currentProfile.id;
-		}
-		// always log the grind attempt
-		await logGrind(profileId, setting ?? 0, outcomeText, adjustment, tamped, grams ?? 0);
-		// also log to the grinder-specific logs when adjustment is 'good'
-		if (adjustment === 'good') {
-			await logGrinderLog(get(selectedGrinder), setting ?? 0, outcomeText, adjustment, tamped, grams ?? 0);
-		}
-
-		// Immediately refresh and show logs
-		showLogs.set(true);
-		loadingLogs.set(true);
-		logs = await getGrindLogs(profileId);
-		loadingLogs.set(false);
-
-		// save last selections for next session
-		localStorage.setItem(
-			'lastSelection',
-			JSON.stringify({
-				roaster: get(selectedRoaster),
-				bean: get(selectedBeanId),
-				grinder: get(selectedGrinder),
-				method: get(selectedMethod),
-				setting,
-				grams
-			})
-		);
-		// reset form
-		setting = 0;
-		outcomeText = '';
-		adjustment = 'good';
-		grams = 0;
-		tamped = false;
-	}
-
-	async function createGrinder() {
-		const g = await addGrinder(newGrinder.trim());
-		grinders.update((list) => [...list, g]);
-		selectedGrinder.set(g.id);
-	}
-
-	async function createMethod() {
-		const m = await addBrewMethod(newMethod.trim());
-		brewMethods.update((list) => [...list, m]);
-		selectedMethod.set(m.id);
-	}
-
-	async function createRoaster() {
-		const r = await addRoaster(newRoaster.trim());
-		roasters.update((list) => [...list, r]);
-		selectedRoaster.set(r.id);
-		newRoaster = '';
-	}
-
-	async function addNewBean() {
-		const b = await addBean($selectedRoaster, newBean.trim());
-		beans.update((list) => [...list, b]);
-		selectedBeanId.set(b.id);
-		newBean = '';
-		showBeanSelector.set(false);
-	}
-
-	// toggle grinder selector when selectedGrinder changes
-	selectedGrinder.subscribe((id) => {
-		showMethodSelector.set(false);
-		if (!id) newGrinder = '';
-	});
-	// toggle method selector when selectedMethod changes
-	selectedMethod.subscribe((id) => {
-		if (!id) newMethod = '';
-	});
-
-	// derive the selected grinder object
-	const selectedGrinderObj = derived(
-		[grinders, selectedGrinder],
-		([$grinders, $id]) => $grinders.find((g) => g.id === $id) || null
-	);
-	// derive the selected method object
-	const selectedMethodObj = derived(
-		[brewMethods, selectedMethod],
-		([$methods, $id]) => $methods.find((m) => m.id === $id) || null
-	);
-
-	// load existing profile when bean, grinder, and method are all selected
-	let lastCombo = { bean: '', grinder: '', method: '' };
-	async function loadProfile() {
-		loadingProfile = true;
-		const beanId = get(selectedBeanId);
-		const grinderId = get(selectedGrinder);
-		const methodId = get(selectedMethod);
-		const profile = await getProfile(beanId, grinderId, methodId);
-		currentProfile = profile;
-		if (currentProfile?.id) {
-			logs = await getGrindLogs(currentProfile.id);
-			if (logs.length) {
-				const last = logs[0];
-				setting = currentProfile.profile_setting;
-				grams = currentProfile.grams;
-				tamped = currentProfile.tamped;
-				outcomeText = last.outcome;
-				adjustment = last.adjustment as 'coarser' | 'good' | 'finer';
-			} else {
-				// no logs: reset to defaults
-				setting = 0;
-				grams = 0;
-				tamped = false;
-				outcomeText = '';
-				adjustment = 'good';
-			}
-		} else {
-			// no existing profile: clear logs and reset inputs
-			logs = [];
-			setting = 0;
-			grams = 0;
-			tamped = false;
-			outcomeText = '';
-			adjustment = 'good';
-		}
-		loadingProfile = false;
-	}
-
-	/** Toggle display of grind logs and fetch if needed */
-	async function toggleLogs() {
-		showLogs.update((v) => !v);
-		// fetch logs on first open
-		if (get(showLogs) && currentProfile?.id && logs.length === 0) {
-			loadingLogs.set(true);
-			logs = await getGrindLogs(currentProfile.id);
-			loadingLogs.set(false);
-		}
-	}
-
-	// subscribe to selection changes to load profile
-	function checkAndLoad() {
-		const beanId = get(selectedBeanId);
-		const grinderId = get(selectedGrinder);
-		const methodId = get(selectedMethod);
-		if (beanId && grinderId && methodId) {
-			if (
-				beanId !== lastCombo.bean ||
-				grinderId !== lastCombo.grinder ||
-				methodId !== lastCombo.method
-			) {
-				lastCombo = { bean: beanId, grinder: grinderId, method: methodId };
-				lastProfile = null; // clear previous profile summary
-				loadProfile();
-			}
-		} else {
-			currentProfile = null;
-			lastProfile = null; // clear if incomplete
-		}
-	}
-	selectedBeanId.subscribe(checkAndLoad);
-	selectedGrinder.subscribe(checkAndLoad);
-	selectedMethod.subscribe(checkAndLoad);
-
-	function handleLogUpdated(updatedLog: GrindLog) {
-		// Update the local 'logs' array to be reactive
-		logs = logs.map((log) => (log.id === updatedLog.id ? updatedLog : log));
-	}
-
-	// Add handler for deleted logs
-	function handleLogDeleted(logId: string) {
-		// Remove the deleted log from local 'logs' array
-		logs = logs.filter((log) => log.id !== logId);
-	}
-</script>
-
-<div class="container">
-	{#if lastProfile}
-		<div class="log-section">
+<section class="container section">
+	<h2>What it does</h2>
+	<div class="features">
+		<div class="feature">
+			<h3>Track beans</h3>
+			<p>Roaster, name, origin, varietal, process, roast level, notes.</p>
+		</div>
+		<div class="feature">
+			<h3>Track grinders</h3>
 			<p>
-				<strong>Current Profile:</strong> Setting {lastProfile.setting}, Grams {lastProfile.grams},
-				Tamped? {lastProfile.tamped ? 'Yes' : 'No'}
+				Any dial pattern works: integer steps, fractional, stepless, even negative settings
+				(1Zpresso-style).
 			</p>
 		</div>
-	{/if}
-	<Selector show={showRoasterSelector} expandTransition={fly} expandParams={{ duration: 300 }}>
-		{#snippet summary()}
-			<!-- summary roaster view -->
-			<div class="summary-select-wrapper summary-button">
-				<select
-					value={$selectedRoaster}
-					on:change={(e) => {
-						const v = (e.target as HTMLSelectElement).value;
-						if (v === '__add__') {
-							showRoasterSelector.set(true);
-						} else {
-							selectedRoaster.set(v);
-							showRoasterSelector.set(false);
-						}
-					}}
-				>
-					<option value="" disabled hidden>Select Roaster</option>
-					<option value="__add__">+ Add New Roaster</option>
-					{#each $roasters as r}
-						<option value={r.id}>{r.name}</option>
-					{/each}
-				</select>
-				<span class="icon">
-					<img src="/roaster.png" alt="Roaster" />
-				</span>
-				<span>{$roasters.find((r) => r.id === $selectedRoaster)?.name || `Select a roaster`}</span>
-			</div>
-		{/snippet}
-		{#snippet children()}
-			<!-- expanded roaster selection -->
-			<div class="new-input">
-				<input type="text" placeholder="New roaster name" bind:value={newRoaster} />
-				<button on:click={createRoaster} disabled={!newRoaster.trim()}>Save</button>
-			</div>
-		{/snippet}
-	</Selector>
+		<div class="feature">
+			<h3>Track brew methods</h3>
+			<p>V60, Chemex, AeroPress, espresso, French press, Moka, Turkish, cold brew — or whatever you invent.</p>
+		</div>
+		<div class="feature">
+			<h3>Log brews</h3>
+			<p>Full recipe, 1–10 rating, tasting notes, flavor tags.</p>
+		</div>
+		<div class="feature">
+			<h3>Adjust &amp; re-brew</h3>
+			<p>Duplicate any past brew so you can change one variable and try again.</p>
+		</div>
+		<div class="feature">
+			<h3>Per-bean dial-in view</h3>
+			<p>See your attempts grouped by (grinder, brew method) and watch the grind move across tries.</p>
+		</div>
+		<div class="feature">
+			<h3>Independent unit prefs</h3>
+			<p>Grams for grounds, ounces for liquid, °C or °F — mix freely.</p>
+		</div>
+		<div class="feature">
+			<h3>Fully offline</h3>
+			<p>Every screen works without a network connection.</p>
+		</div>
+		<div class="feature">
+			<h3>No accounts. No ads. No tracking.</h3>
+			<p>Your data lives on your device.</p>
+		</div>
+	</div>
+</section>
 
-	{#if $selectedRoaster}
-		<Selector show={showBeanSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
-			{#snippet summary()}
-				<!-- summary bean view -->
-				<div class="summary-select-wrapper summary-button">
-					<select
-						value={$selectedBeanId}
-						on:change={(e) => {
-							const v = (e.target as HTMLSelectElement).value;
-							if (v === '__add__') {
-								showBeanSelector.set(true);
-							} else {
-								selectedBeanId.set(v);
-								showBeanSelector.set(false);
-							}
-						}}
-					>
-						<option value="" disabled hidden>Select Bean</option>
-						<option value="__add__">+ Add New Bean</option>
-						{#each $beans as b}
-							<option value={b.id}>{b.name}</option>
-						{/each}
-					</select>
-					<span class="icon"><img src="/bag-of-coffee.png" alt="Bean" /></span>
-					<span>{$selectedBean?.name || `Select a bean`}</span>
-				</div>
-			{/snippet}
-			{#snippet children()}
-				<div class="new-input">
-					<input type="text" placeholder="New bean name" bind:value={newBean} />
-					<button on:click={addNewBean} disabled={!newBean.trim()}>Save</button>
-				</div>
-			{/snippet}
-		</Selector>
-	{/if}
+<section class="container section">
+	<div class="callout">
+		<h2>Backup, not sync</h2>
+		<p>
+			Brew Tuner doesn't use the cloud. <strong>Settings → Backup &amp; restore</strong> exports your
+			data to a single JSON file you can save anywhere — iCloud Drive, Google Drive, email, AirDrop. Restore
+			on a new device by picking the file back up.
+		</p>
+		<p>
+			There's no account to lose, no server to outage, no privacy trade. Just a coffee log that's
+			actually yours.
+		</p>
+	</div>
+</section>
 
-	{#if $selectedBean}
-		<Selector show={showGrinderSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
-			{#snippet summary()}
-				<div class="summary-select-wrapper summary-button">
-					<select
-						value={$selectedGrinder}
-						on:change={(e) => {
-							const v = (e.target as HTMLSelectElement).value;
-							if (v === '__add__') {
-								showGrinderSelector.set(true);
-							} else {
-								selectedGrinder.set(v);
-								showGrinderSelector.set(false);
-							}
-						}}
-					>
-						<option value="" disabled hidden>Select Grinder</option>
-						<option value="__add__">+ Add New Grinder</option>
-						{#each $grinders as g}
-							<option value={g.id}>{g.name}</option>
-						{/each}
-					</select>
-					<span class="icon"><img src="/grinder.png" alt="Grinder" /></span>
-					<span>{$selectedGrinderObj?.name || 'Select a grinder'}</span>
-				</div>
-			{/snippet}
-			{#snippet children()}
-				<div class="new-input">
-					<input type="text" placeholder="Add new grinder" bind:value={newGrinder} />
-					<button on:click={createGrinder} disabled={!newGrinder.trim()}>Save</button>
-				</div>
-			{/snippet}
-		</Selector>
-		{#if $selectedGrinder}
-			<Selector show={showMethodSelector} expandTransition={scale} expandParams={{ duration: 200 }}>
-				{#snippet summary()}
-					<div class="summary-select-wrapper summary-button">
-						<select
-							value={$selectedMethod}
-							on:change={(e) => {
-								const v = (e.target as HTMLSelectElement).value;
-								if (v === '__add__') {
-									showMethodSelector.set(true);
-								} else {
-									selectedMethod.set(v);
-									showMethodSelector.set(false);
-								}
-							}}
-						>
-							<option value="" disabled hidden>Select Method</option>
-							<option value="__add__">+ Add New Method</option>
-							{#each $brewMethods as m}
-								<option value={m.id}>{m.name}</option>
-							{/each}
-						</select>
-						<span class="icon"><img src="/method.png" alt="Method" /></span>
-						<span id="selected-method">{$selectedMethodObj?.name || `Select a method`}</span>
-					</div>
-				{/snippet}
-				{#snippet children()}
-					<div class="new-input">
-						<input id="new-method" type="text" placeholder="Add new method" bind:value={newMethod} />
-						<button on:click={createMethod} disabled={!newMethod.trim()}>Save</button>
-					</div>
-				{/snippet}
-			</Selector>
-			{#if $selectedMethod}
-				<span class="log-inputs">
-					<div>
-						<span class="dial unit-input">
-							<input
-								id="setting-input"
-								type="number"
-								step="0.1"
-								bind:value={setting}
-								on:focus={(e) => {
-									if (e.target instanceof HTMLInputElement && parseFloat(e.target.value) === 0) {
-										setting = null;
-									}
-								}}
-								on:blur={(e) => {
-									if (setting === null) {
-										setting = 0;
-									}
-								}}
-							/>
-							<Dial bind:value={setting} min={-30} max={30} step={0.5} />
-						</span>
-					</div>
-					<div class="unit-input">
-						<label for="grams-input" class="right-setting icon"
-							><img src="/coffee-scale.png" alt="grams" /></label
-						>
-						<input
-							id="grams-input"
-							type="number"
-							min="0"
-							bind:value={grams}
-							on:focus={(e) => {
-								if (e.target instanceof HTMLInputElement && parseFloat(e.target.value) === 0) {
-									grams = null;
-								}
-							}}
-							on:blur={(e) => {
-								if (grams === null) {
-									grams = 0;
-								}
-							}}
-						/>
-						<span class="unit">g</span>
-					</div>
-				</span>
-				<span class="log-inputs">
-					<div class="tamped">
-						<select id="adjustment-select" bind:value={adjustment}>
-							<option value="coarser">Coarser</option>
-							<option value="good">Good</option>
-							<option value="finer">Finer</option>
-						</select>
-						<label for="adjustment-select" class="icon">
-							<img alt="adjustment" src="idea.png" />
-						</label>
-					</div>
+<section class="container section">
+	<h2>Screenshots</h2>
+	<div class="screenshots">
+		<div class="screenshot placeholder">
+			<span>Home</span>
+		</div>
+		<div class="screenshot placeholder">
+			<span>Log a brew</span>
+		</div>
+		<div class="screenshot placeholder">
+			<span>Dial-in view</span>
+		</div>
+	</div>
+	<p class="muted screenshots-note">Screenshots coming with the App Store submission package.</p>
+</section>
 
-					<div class="tamped">
-						<img src="/tamper-transparent.png" alt="Tamped?" class="icon" />
-						<input id="tamped-checkbox" type="checkbox" bind:checked={tamped} />
-					</div>
-				</span>
-				<span class="log-inputs">
-					<textarea
-						id="outcome-input"
-						rows="8"
-						style="width: 100%;"
-						placeholder="e.g. short extraction, bitter, etc."
-						bind:value={outcomeText}
-					></textarea>
-				</span>
-				<span class="bottom-buttons">
-				<button class="submit" on:click|preventDefault={submitLog} type="button">Submit</button>
-				<LogDisplay
-					{logs}
-					loading={$loadingLogs}
-					show={$showLogs}
-					toggle={toggleLogs}
-					onLogUpdated={handleLogUpdated}
-					onLogDeleted={handleLogDeleted}
-				/>
-				</span>
-			{/if}
-		{/if}
-	{/if}
-</div>
+<section class="container section">
+	<div class="cta">
+		<h2>Questions or feedback?</h2>
+		<p>
+			Email <a href="mailto:mail@tonyschmidt.io">mail@tonyschmidt.io</a> — or read the
+			<a href="/support">support page</a> for common questions.
+		</p>
+	</div>
+</section>
 
 <style>
-	/* Import modern typefaces */
-	@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;700&family=Inter:wght@400;500;700&family=Roboto+Slab:wght@300;400;700&display=swap');
-
-	:global(:root) {
-		--color-bg: #f8f9fa; /* Lighter, cleaner background */
-		--color-surface: #ffffff; /* For cards/modal elements */
-		--color-primary: #343a40; /* Darker primary for text and important elements */
-		--color-accent: #a57e65; /* Earthy, sophisticated accent */
-		--color-cta: #4a5568; /* Muted Call to Action */
-		--color-text-primary: #212529; /* Main text color */
-		--color-text-secondary: #6c757d; /* Lighter text for secondary info */
-		--color-bg-icon: transparent;
-		--color-input-bg: #ffffff;
-		--color-border: #dee2e6; /* Subtle borders */
-		--border-radius-sm: 4px;
-		--border-radius-md: 8px;
-		--transition-speed: 0.2s;
-		--font-family-sans: 'Inter', sans-serif;
-		--font-family-serif: 'Roboto Slab', serif; /* For headings or accents */
-		--font-family-display: 'Clash Display', sans-serif; /* For special display text */
-		--icon-invert: 0%;
+	.hero {
+		background: linear-gradient(180deg, var(--color-surface-alt) 0%, var(--color-bg) 100%);
+		padding: 4rem 0 3rem 0;
+		text-align: center;
 	}
 
-	:global(body.dark-mode) {
-		--color-bg: #1a202c; /* Dark background */
-		--color-surface: #2d3748; /* Dark surface for cards/modals */
-		--color-primary: #e2e8f0; /* Light primary for text in dark mode */
-		--color-accent: #b9957e; /* Adjusted accent for dark mode */
-		--color-cta: #718096; /* Adjusted CTA for dark mode */
-		--color-text-primary: #dadbb7; /* Main text color for dark mode */
-		--color-text-secondary: #a0aec0; /* Lighter text for secondary info in dark mode */
-		--color-bg-icon: #a0aec03d; /* Subtle background for icons in dark mode */
-		--color-input-bg: #2d3748; /* Dark input background */
-		--color-border: #4a5568; /* Adjusted border for dark mode */
-		--icon-invert: 100%; /* Invert icons in dark mode */
+	.hero-inner {
+		max-width: 50rem;
 	}
 
-	.container {
+	.eyebrow {
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: var(--color-accent);
+		margin-bottom: 0.5rem;
+	}
+
+	.lede {
+		font-size: 1.15rem;
+		color: var(--color-text-secondary);
+		max-width: 36rem;
+		margin: 1rem auto 2rem auto;
+	}
+
+	.badges {
 		display: flex;
-		flex-direction: column;
-		width: 100%;
-		max-width: 1000px;
-		gap: 2rem; /* Increased gap for better separation */
-		justify-content: flex-start;
-		padding: 2rem; /* Consistent padding */
-		min-height: calc(100vh - 9rem); /* Adjust min-height considering margin */
-		background: var(--color-bg);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer shadow */
-		font-family: var(--font-family-sans);
-		color: var(--color-text-primary);
-	}
-
-	select,
-	input[type='text'],
-	input[type='number'],
-	textarea {
-		width: 100%;
-		padding: 0.85rem 1rem; /* Increased padding */
-		border: 0px solid var(--color-border);
-		border-radius: var(--border-radius-sm);
-		background: var(--color-input-bg);
-		font-family: inherit;
-		font-size: 0.95rem; /* Slightly larger font */
-		color: var(--color-text-primary);
-		transition:
-			border-color var(--transition-speed) ease,
-			box-shadow var(--transition-speed) ease;
-	}
-
-	select:focus,
-	input[type='text']:focus,
-	input[type='number']:focus,
-	textarea:focus {
-		outline: none;
-		border-color: var(--color-accent);
-		box-shadow: 0 0 0 2px rgba(var(--color-accent), 0.2); /* Focus ring */
-	}
-
-	textarea {
-		resize: vertical; /* Allow vertical resize */
-		min-height: 80px;
-	}
-
-	.bottom-buttons {
-		display: flex;
-		flex-direction: column;
+		gap: 1rem;
 		justify-content: center;
-		width: 100%;
-		gap: 1rem; /* Increased gap for better spacing */
-		margin-top: 1rem; /* Added margin for separation */
-	}
-
-	.new-input {
-		display: flex;
-		gap: 0.75rem; /* Slightly increased gap */
-		margin-top: 0.5rem;
-		align-items: center; /* Align items vertically */
-	}
-
-	.new-input input[type='text'] {
-		flex-grow: 1; /* Allow input to take available space */
-	}
-
-	.new-input button {
-		flex-shrink: 0;
-		background: var(--color-cta);
-		color: white;
-		border: none;
-		border-radius: var(--border-radius-sm);
-		padding: 0.85rem 1.25rem; /* Matched padding with inputs */
-		font-weight: 500;
-		cursor: pointer;
-		transition: background-color var(--transition-speed) ease;
-	}
-
-	.new-input button:hover {
-		background-color: var(--color-primary); /* Darken on hover */
-	}
-	.new-input button:disabled {
-		background-color: var(--color-text-secondary);
-		cursor: not-allowed;
-	}
-
-	.summary-button {
-		display: flex;
-		align-items: center;
-		justify-content: flex-start; /* Align to the left */
-		gap: 1rem; /* Increased gap */
-		font-family: var(--font-family-serif); /* Using serif for a touch of class */
-		font-size: 1.1rem; /* Adjusted size */
-		background: var(--color-surface);
-		border: 0px solid var(--color-border);
-		border-radius: var(--border-radius-md);
-		padding: 0.75rem 1rem;
-		cursor: pointer;
-		width: 100%;
-		text-align: left;
-		transition:
-			border-color var(--transition-speed) ease,
-			background-color var(--transition-speed) ease;
-	}
-	.summary-button:hover {
-		border-color: var(--color-accent);
-		background-color: #fdfdfd3d;
-	}
-	.summary-button .icon img {
-		/* Ensure icon class is used on img for this */
-		/* height: 48px; */
-		flex-shrink: 0;
-		align-items: center;
-	}
-
-	.icon {
-		height: 48px;
-		width: 48px;
-		display: flex;
-		justify-content: space-evenly;
-		/* background-color: var(--color-bg-icon); */
-		padding: 4px;
-		border-radius: var(--border-radius-sm);
-	}
-
-	.icon img {
-		filter: invert(var(--icon-invert));
-	}
-
-	.summary-button span {
-		color: var(--color-text-primary);
-		font-weight: 400;
-	}
-
-	.log-section {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem; /* Reduced gap */
-		padding: 1rem;
-		background: var(--color-surface);
-		border-radius: var(--border-radius-md);
-		border: 0px solid var(--color-border);
-	}
-	.log-section p {
-		margin: 0;
-		font-size: 0.9rem;
-		color: var(--color-text-secondary);
-	}
-	.log-section strong {
-		color: var(--color-text-primary);
-		font-weight: 500;
-	}
-
-	.log-inputs {
-		display: flex;
 		flex-wrap: wrap;
-		justify-content: space-between;
-		gap: 1.5rem; /* Increased gap */
-		align-items: center; /* Align items better */
+		margin: 1.5rem 0 0.5rem 0;
 	}
 
-	.unit-input,
-	.dial {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-	}
-	.unit-input label img {
-		height: 48px; /* Standardized icon size */
-	}
-	.unit-input input[type='number'] {
-		width: 5rem; /* Fixed width for grams/setting */
-		text-align: right;
-	}
-	.unit-input .unit {
-		font-size: 0.9rem;
-		color: var(--color-text-secondary);
+	.store-badge {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: center;
+		text-align: left;
+		padding: 0.6rem 1.25rem;
+		min-width: 11rem;
+		background: var(--color-primary);
+		color: var(--color-bg);
+		border-radius: var(--radius-md);
+		text-decoration: none;
+		transition: transform var(--transition), background-color var(--transition);
 	}
 
-	#adjustment-select {
-		width: auto;
-		padding: 0.85rem 1rem; /* Matched padding */
-		min-width: 150px; /* Ensure it's not too small */
-	}
-
-	.tamped {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-	}
-	.tamped img.icon {
-		/* Ensure icon class is used on img for this */
-		height: 48px; /* Standardized icon size */
-	}
-
-	.tamped input[type='checkbox'] {
-		appearance: none;
-		width: 1.5rem; /* Slightly smaller */
-		height: 1.5rem;
-		border: 2px solid var(--color-text-secondary);
-		border-radius: var(--border-radius-sm);
-		position: relative;
-		cursor: pointer;
-		transition: border-color var(--transition-speed) ease;
-	}
-	.tamped input[type='checkbox']:hover {
-		border-color: var(--color-accent);
-	}
-
-	.tamped input[type='checkbox']::after {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 0.35rem; /* Adjusted checkmark */
-		height: 0.75rem;
-		border: solid var(--color-accent);
-		border-width: 0 3px 3px 0;
-		transform: translate(-50%, -60%) rotate(45deg); /* Better centering */
-		opacity: 0;
-		transition: opacity var(--transition-speed) ease;
-	}
-
-	.tamped input[type='checkbox']:checked {
-		border-color: var(--color-accent);
-	}
-	.tamped input[type='checkbox']:checked::after {
-		opacity: 1;
-	}
-
-	.submit {
+	.store-badge:hover {
+		text-decoration: none;
 		background: var(--color-accent);
-		color: white;
-		padding: 0.9rem 2.5rem; /* Larger padding for emphasis */
-		font-size: 1.1rem; /* Adjusted font size */
-		font-weight: 500; /* Medium weight */
-		font-family: var(--font-family-sans);
-		border: none;
-		border-radius: var(--border-radius-sm);
-		cursor: pointer;
-		align-self: center;
-		margin-top: 1rem; /* Added margin */
-		transition:
-			background-color var(--transition-speed) ease,
-			transform var(--transition-speed) ease;
+		transform: translateY(-1px);
+		color: var(--color-bg);
 	}
 
-	.submit:hover {
-		background-color: #936a53; /* Darken accent on hover */
-		transform: scale(1.02); /* Subtle scale effect */
+	.store-eyebrow {
+		font-size: 0.7rem;
+		opacity: 0.85;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
 	}
 
-	/* Ensure summary select overlay is still functional */
-	.summary-select-wrapper {
-		position: relative;
-		width: 100%; /* Ensure it takes full width of its parent */
-	}
-	.summary-select-wrapper select {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		opacity: 0;
-		cursor: pointer;
+	.store-name {
+		font-family: var(--font-serif);
+		font-weight: 600;
+		font-size: 1.15rem;
 	}
 
-	@media (max-width: 600px) {
-		.container {
-			padding: 1.5rem 1rem; /* Adjusted padding for mobile */
-			margin: 0;
-			border-radius: 0;
-			min-height: calc(100vh - 8rem);
-			width: 95%;
-		}
+	.coming-soon {
+		margin-top: 1rem;
+	}
+
+	.section {
+		padding: 1.5rem 0;
+	}
+
+	.features {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+		gap: 1rem;
+		margin-top: 1rem;
+	}
+
+	.feature {
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		padding: 1.25rem;
+	}
+
+	.feature h3 {
+		margin-top: 0;
+		font-size: 1.05rem;
+		color: var(--color-accent);
+	}
+
+	.feature p {
+		margin: 0;
+		color: var(--color-text-secondary);
+		font-size: 0.95rem;
+	}
+
+	.callout {
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		padding: 2rem;
+		max-width: 42rem;
+		margin: 0 auto;
+		box-shadow: var(--shadow-sm);
+	}
+
+	.callout h2 {
+		margin-top: 0;
+		color: var(--color-accent);
+	}
+
+	.screenshots {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+		gap: 1rem;
+		margin-top: 1rem;
+	}
+
+	.screenshot.placeholder {
+		aspect-ratio: 9 / 19.5;
+		max-height: 28rem;
+		border: 2px dashed var(--color-border);
+		border-radius: var(--radius-lg);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--color-text-secondary);
+		font-size: 0.9rem;
+		background: var(--color-surface);
+	}
+
+	.screenshots-note {
+		text-align: center;
+		margin-top: 1rem;
+	}
+
+	.cta {
+		text-align: center;
+		padding: 2rem 1rem;
+	}
+
+	.cta h2 {
+		margin-top: 0;
 	}
 </style>
