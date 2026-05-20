@@ -98,20 +98,68 @@
 	</div>
 </section>
 
-<section class="container section">
-	<h2>Screenshots</h2>
+<section class="container section screenshots-section">
+	<h2>What it looks like</h2>
+
+	<!-- Hero shot: the per-bean dial-in view. The single most distinctive
+	     screen in the app — visitors who get this image get the whole pitch. -->
+	<figure class="hero-shot">
+		<img
+			src="/screenshots/dial-in-arc.png"
+			alt="Per-bean dial-in view showing 4 brews on a Sweet Bloom Ibonia, grouped by grinder and method, with the best brew (a 10/10 V60 at grind 17) called out at the top."
+			loading="lazy"
+			width="1242"
+			height="2688"
+		/>
+		<figcaption>
+			<strong>The per-bean dial-in view.</strong>
+			Every brew you've logged on a bean, grouped by (grinder, brew method), with your best brew surfaced
+			at the top. Open it on a returning bean and you're back where you left off.
+		</figcaption>
+	</figure>
+
+	<!-- Supporting shots: 3 smaller, equal-weight. -->
 	<div class="screenshots">
-		<div class="screenshot placeholder">
-			<span>Home</span>
-		</div>
-		<div class="screenshot placeholder">
-			<span>Log a brew</span>
-		</div>
-		<div class="screenshot placeholder">
-			<span>Dial-in view</span>
-		</div>
+		<figure class="screenshot">
+			<img
+				src="/screenshots/brew-detail.png"
+				alt="Brew detail screen showing grind setting 17, rating 10, recipe (30g dose, 350g yield, 3:00 time, 85°C), with Adjust this brew, Re-brew from this recipe, and Delete brew action buttons."
+				loading="lazy"
+				width="1242"
+				height="2688"
+			/>
+			<figcaption>
+				<strong>Brew detail.</strong> Adjust this brew to fill in what you missed in the moment.
+				Re-brew to start a new attempt from this recipe.
+			</figcaption>
+		</figure>
+		<figure class="screenshot">
+			<img
+				src="/screenshots/home.png"
+				alt="Brew Tuner home screen with a Today card, library stats (6 grinders, 8 methods), and a recent brews list."
+				loading="lazy"
+				width="1242"
+				height="2688"
+			/>
+			<figcaption>
+				<strong>Home.</strong> Tap once to log a brew, see your library at a glance, jump back into recent
+				attempts.
+			</figcaption>
+		</figure>
+		<figure class="screenshot">
+			<img
+				src="/screenshots/grinders-library.png"
+				alt="Grinders library showing 1Zpresso JX-Pro (-1 to 9 clicks, step 0.1), Baratza Encore (1-40 numbers), Comandante C40 MK4 (0-40 clicks), Niche Zero, and more."
+				loading="lazy"
+				width="1242"
+				height="2688"
+			/>
+			<figcaption>
+				<strong>Any grinder.</strong> Integer steps, fractional, stepless, even negative
+				settings. Common models pre-loaded.
+			</figcaption>
+		</figure>
 	</div>
-	<p class="muted screenshots-note">Screenshots coming with the App Store submission package.</p>
 </section>
 
 <section class="container section">
@@ -243,24 +291,66 @@
 		color: var(--color-accent);
 	}
 
+	.screenshots-section h2 {
+		text-align: center;
+		margin-bottom: 2rem;
+	}
+
+	.hero-shot {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		margin: 0 0 3rem 0;
+	}
+
+	.hero-shot img {
+		width: auto;
+		max-width: min(20rem, 100%);
+		height: auto;
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-md);
+		display: block;
+	}
+
+	.hero-shot figcaption {
+		max-width: 32rem;
+		text-align: center;
+		font-size: 0.95rem;
+		color: var(--color-text-secondary);
+		line-height: 1.55;
+	}
+
 	.screenshots {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-		gap: 1rem;
+		grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+		gap: 2rem 1.5rem;
 		margin-top: 1rem;
 	}
 
-	.screenshot.placeholder {
-		aspect-ratio: 9 / 19.5;
-		max-height: 28rem;
-		border: 2px dashed var(--color-border);
-		border-radius: var(--radius-lg);
+	.screenshot {
 		display: flex;
+		flex-direction: column;
 		align-items: center;
-		justify-content: center;
+		gap: 0.75rem;
+		margin: 0;
+	}
+
+	.screenshot img {
+		width: auto;
+		max-width: 100%;
+		max-height: 26rem;
+		height: auto;
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-sm);
+		display: block;
+	}
+
+	.screenshot figcaption {
+		font-size: 0.875rem;
 		color: var(--color-text-secondary);
-		font-size: 0.9rem;
-		background: var(--color-surface);
+		text-align: center;
+		line-height: 1.5;
 	}
 
 	.screenshots-note {
