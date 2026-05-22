@@ -8,8 +8,8 @@
 	<p class="muted">Release notes for Brew Tuner, newest first.</p>
 
 	<section class="release">
-		<h2>v1.0.0 — <span class="muted">coming soon</span></h2>
-		<p class="muted release-date">Initial release · TBD 2026</p>
+		<h2>v1.0.0</h2>
+		<p class="muted release-date">Initial release · May 22, 2026</p>
 		<p>The first public release of Brew Tuner. Core dial-in loop, no accounts, no servers.</p>
 		<ul>
 			<li>Add and edit beans (roaster, name, origin, varietal, process, roast level, notes).</li>

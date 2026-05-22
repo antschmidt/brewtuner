@@ -19,7 +19,7 @@
 		<div class="badges">
 			<a
 				class="store-badge"
-				href="https://apps.apple.com/app/idXXXXXXXXXX"
+				href="https://apps.apple.com/us/app/brew-tuner/id6771189315"
 				aria-label="Download on the App Store"
 			>
 				<span class="store-eyebrow">Download on the</span>
@@ -27,14 +27,13 @@
 			</a>
 			<a
 				class="store-badge"
-				href="https://play.google.com/store/apps/details?id=io.tonyschmidt.brewtuner"
+				href="https://play.google.com/store/apps/details?id=app.brewtuner.brewtuner"
 				aria-label="Get it on Google Play"
 			>
 				<span class="store-eyebrow">Get it on</span>
 				<span class="store-name">Google Play</span>
 			</a>
 		</div>
-		<p class="muted coming-soon">Coming soon on both platforms.</p>
 	</div>
 </section>
 
