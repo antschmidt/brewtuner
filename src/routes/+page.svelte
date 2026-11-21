@@ -1,172 +1,168 @@
+<script lang="ts">
+	const APP_STORE = 'https://apps.apple.com/us/app/brew-tuner/id6771189315';
+	const PLAY_STORE = 'https://play.google.com/store/apps/details?id=app.brewtuner.brewtuner';
+	const title = 'Brew Tuner — your brew-by-brew dial-in log';
+	const description =
+		'Brew Tuner is a coffee dial-in companion for iOS and Android. Track beans, grinders, and brew methods. Log every brew. Chase the sweet spot one variable at a time.';
+</script>
+
 <svelte:head>
-	<title>Brew Tuner — your brew-by-brew dial-in log</title>
-	<meta
-		name="description"
-		content="Brew Tuner is a coffee dial-in companion for iOS and Android. Track beans, grinders, and brew methods. Log every brew. Chase the sweet spot one variable at a time."
-	/>
+	<title>{title}</title>
+	<meta name="description" content={description} />
+	<meta property="og:title" content={title} />
+	<meta property="og:description" content={description} />
 </svelte:head>
 
 <section class="hero">
 	<div class="container hero-inner">
-		<p class="eyebrow">For iOS &amp; Android</p>
-		<h1>Your brew-by-brew dial-in log.</h1>
-		<p class="lede">
-			Pick a bean, pick a grinder, pick a brew method, then log every brew with grind setting, dose,
-			yield, time, and rating. Tap <strong>Adjust &amp; re-brew</strong> to chase the sweet spot one
-			variable at a time.
-		</p>
-
-		<div class="badges">
-			<a
-				class="store-badge"
-				href="https://apps.apple.com/us/app/brew-tuner/id6771189315"
-				aria-label="Download on the App Store"
-			>
-				<span class="store-eyebrow">Download on the</span>
-				<span class="store-name">App Store</span>
-			</a>
-			<a
-				class="store-badge"
-				href="https://play.google.com/store/apps/details?id=app.brewtuner.brewtuner"
-				aria-label="Get it on Google Play"
-			>
-				<span class="store-eyebrow">Get it on</span>
-				<span class="store-name">Google Play</span>
-			</a>
-		</div>
-	</div>
-</section>
-
-<section class="container section">
-	<h2>What it does</h2>
-	<div class="features">
-		<div class="feature">
-			<h3>Track beans</h3>
-			<p>Roaster, name, origin, varietal, process, roast level, notes.</p>
-		</div>
-		<div class="feature">
-			<h3>Track grinders</h3>
-			<p>
-				Any dial pattern works: integer steps, fractional, stepless, even negative settings
-				(1Zpresso-style).
+		<div class="hero-copy">
+			<p class="eyebrow">Brew-by-brew dial-in log · iOS &amp; Android</p>
+			<h1>Stop guessing your grind.</h1>
+			<p class="lede">
+				Log every brew — grind setting, dose, yield, time, rating — then change one variable and
+				brew again. Brew Tuner keeps the trail, so the next bag starts where the last one landed.
 			</p>
-		</div>
-		<div class="feature">
-			<h3>Track brew methods</h3>
-			<p>V60, Chemex, AeroPress, espresso, French press, Moka, Turkish, cold brew — or whatever you invent.</p>
-		</div>
-		<div class="feature">
-			<h3>Log brews</h3>
-			<p>Full recipe, 1–10 rating, tasting notes, flavor tags.</p>
-		</div>
-		<div class="feature">
-			<h3>Adjust &amp; re-brew</h3>
-			<p>Duplicate any past brew so you can change one variable and try again.</p>
-		</div>
-		<div class="feature">
-			<h3>Per-bean dial-in view</h3>
-			<p>See your attempts grouped by (grinder, brew method) and watch the grind move across tries.</p>
-		</div>
-		<div class="feature">
-			<h3>Independent unit prefs</h3>
-			<p>Grams for grounds, ounces for liquid, °C or °F — mix freely.</p>
-		</div>
-		<div class="feature">
-			<h3>Fully offline</h3>
-			<p>Every screen works without a network connection.</p>
-		</div>
-		<div class="feature">
-			<h3>No accounts. No ads. No tracking.</h3>
-			<p>Your data lives on your device.</p>
-		</div>
-	</div>
-</section>
 
-<section class="container section">
-	<div class="callout">
-		<h2>Backup, not sync</h2>
-		<p>
-			Brew Tuner doesn't use the cloud. <strong>Settings → Backup &amp; restore</strong> exports your
-			data to a single JSON file you can save anywhere — iCloud Drive, Google Drive, email, AirDrop. Restore
-			on a new device by picking the file back up.
-		</p>
-		<p>
-			There's no account to lose, no server to outage, no privacy trade. Just a coffee log that's
-			actually yours.
-		</p>
-	</div>
-</section>
+			<div class="badges">
+				<a class="store-badge" href={APP_STORE} aria-label="Download on the App Store">
+					<span class="store-eyebrow">Download on the</span>
+					<span class="store-name">App Store</span>
+				</a>
+				<a class="store-badge" href={PLAY_STORE} aria-label="Get it on Google Play">
+					<span class="store-eyebrow">Get it on</span>
+					<span class="store-name">Google Play</span>
+				</a>
+			</div>
+			<p class="hero-note">No accounts. No ads. No tracking. Works fully offline.</p>
+		</div>
 
-<section class="container section screenshots-section">
-	<h2>What it looks like</h2>
-
-	<!-- Hero shot: the per-bean dial-in view. The single most distinctive
-	     screen in the app — visitors who get this image get the whole pitch. -->
-	<figure class="hero-shot">
-		<img
-			src="/screenshots/dial-in-arc.png"
-			alt="Per-bean dial-in view showing 4 brews on a Sweet Bloom Ibonia, grouped by grinder and method, with the best brew (a 10/10 V60 at grind 17) called out at the top."
-			loading="lazy"
-			width="1242"
-			height="2688"
-		/>
-		<figcaption>
-			<strong>The per-bean dial-in view.</strong>
-			Every brew you've logged on a bean, grouped by (grinder, brew method), with your best brew surfaced
-			at the top. Open it on a returning bean and you're back where you left off.
-		</figcaption>
-	</figure>
-
-	<!-- Supporting shots: 3 smaller, equal-weight. -->
-	<div class="screenshots">
-		<figure class="screenshot">
+		<figure class="phone hero-phone">
 			<img
-				src="/screenshots/brew-detail.png"
+				src="/screenshots/dial-in-arc-640.webp"
+				srcset="/screenshots/dial-in-arc-640.webp 640w, /screenshots/dial-in-arc-960.webp 960w"
+				sizes="(max-width: 480px) 72vw, 320px"
+				alt="Per-bean dial-in view showing 4 brews on a Sweet Bloom Ibonia, grouped by grinder and method, with the best brew (a 10/10 V60 at grind 17) called out at the top."
+				width="1242"
+				height="2688"
+				fetchpriority="high"
+			/>
+		</figure>
+	</div>
+</section>
+
+<section class="container pillars">
+	<article class="pillar">
+		<div class="pillar-copy">
+			<p class="eyebrow">The dial-in loop</p>
+			<h2>Change one thing. Taste the difference.</h2>
+			<p>
+				Every brew keeps its full recipe, a 1–10 rating, tasting notes, and flavor tags. Tap
+				<strong>Re-brew</strong> to start the next attempt from the same recipe, nudge the grind,
+				and see whether it got better.
+			</p>
+			<ul>
+				<li>
+					<strong>Per-bean dial-in view</strong> — attempts grouped by (grinder, brew method), best
+					brew surfaced at the top.
+				</li>
+				<li>
+					<strong>Adjust later</strong> — fill in what you missed while the kettle was still hot.
+				</li>
+			</ul>
+		</div>
+		<figure class="phone">
+			<img
+				src="/screenshots/brew-detail-640.webp"
+				srcset="/screenshots/brew-detail-640.webp 640w, /screenshots/brew-detail-960.webp 960w"
+				sizes="(max-width: 480px) 72vw, 288px"
 				alt="Brew detail screen showing grind setting 17, rating 10, recipe (30g dose, 350g yield, 3:00 time, 85°C), with Adjust this brew, Re-brew from this recipe, and Delete brew action buttons."
 				loading="lazy"
 				width="1242"
 				height="2688"
 			/>
-			<figcaption>
-				<strong>Brew detail.</strong> Adjust this brew to fill in what you missed in the moment.
-				Re-brew to start a new attempt from this recipe.
-			</figcaption>
 		</figure>
-		<figure class="screenshot">
+	</article>
+
+	<article class="pillar">
+		<div class="pillar-copy">
+			<p class="eyebrow">Your gear</p>
+			<h2>Works with the grinder you actually own.</h2>
+			<p>
+				Any dial pattern: integer steps, fractional clicks, stepless, even negative settings
+				(1Zpresso-style). Common models come pre-loaded; add your own in a minute.
+			</p>
+			<ul>
+				<li>
+					<strong>Any brew method</strong> — V60, Chemex, AeroPress, espresso, French press, Moka,
+					Turkish, cold brew, or whatever you invent.
+				</li>
+				<li>
+					<strong>Beans in detail</strong> — roaster, origin, varietal, process, roast level, notes.
+				</li>
+				<li>
+					<strong>Units your way</strong> — grams for grounds, ounces for liquid, °C or °F. Mix
+					freely.
+				</li>
+			</ul>
+		</div>
+		<figure class="phone">
 			<img
-				src="/screenshots/home.png"
-				alt="Brew Tuner home screen with a Today card, library stats (6 grinders, 8 methods), and a recent brews list."
-				loading="lazy"
-				width="1242"
-				height="2688"
-			/>
-			<figcaption>
-				<strong>Home.</strong> Tap once to log a brew, see your library at a glance, jump back into recent
-				attempts.
-			</figcaption>
-		</figure>
-		<figure class="screenshot">
-			<img
-				src="/screenshots/grinders-library.png"
+				src="/screenshots/grinders-library-640.webp"
+				srcset="/screenshots/grinders-library-640.webp 640w, /screenshots/grinders-library-960.webp 960w"
+				sizes="(max-width: 480px) 72vw, 288px"
 				alt="Grinders library showing 1Zpresso JX-Pro (-1 to 9 clicks, step 0.1), Baratza Encore (1-40 numbers), Comandante C40 MK4 (0-40 clicks), Niche Zero, and more."
 				loading="lazy"
 				width="1242"
 				height="2688"
 			/>
-			<figcaption>
-				<strong>Any grinder.</strong> Integer steps, fractional, stepless, even negative
-				settings. Common models pre-loaded.
-			</figcaption>
 		</figure>
-	</div>
+	</article>
+
+	<article class="pillar">
+		<div class="pillar-copy">
+			<p class="eyebrow">Backup, not sync</p>
+			<h2>A coffee log that's actually yours.</h2>
+			<p>
+				Brew Tuner doesn't use the cloud. Your data lives on your device and every screen works
+				without a network connection. There's no account to lose, no server to outage, no privacy
+				trade.
+			</p>
+			<p>
+				<strong>Settings → Backup &amp; restore</strong> exports everything to a single JSON file
+				you can save anywhere — iCloud Drive, Google Drive, email, AirDrop. Restore on a new phone
+				by picking the file back up.
+			</p>
+		</div>
+		<figure class="phone">
+			<img
+				src="/screenshots/backup-strategy-640.webp"
+				srcset="/screenshots/backup-strategy-640.webp 640w, /screenshots/backup-strategy-960.webp 960w"
+				sizes="(max-width: 480px) 72vw, 288px"
+				alt="Backup and restore screen with an Export backup button, a preview of a 24-record backup file, and a choice between Merge and Replace all restore strategies."
+				loading="lazy"
+				width="1242"
+				height="2688"
+			/>
+		</figure>
+	</article>
 </section>
 
-<section class="container section">
+<section class="container">
 	<div class="cta">
-		<h2>Questions or feedback?</h2>
-		<p>
-			Email <a href="mailto:support@brewtuner.app">support@brewtuner.app</a> — or read the
-			<a href="/support">support page</a> for common questions.
+		<h2>Dial in your next bag.</h2>
+		<div class="badges">
+			<a class="store-badge" href={APP_STORE} aria-label="Download on the App Store">
+				<span class="store-eyebrow">Download on the</span>
+				<span class="store-name">App Store</span>
+			</a>
+			<a class="store-badge" href={PLAY_STORE} aria-label="Get it on Google Play">
+				<span class="store-eyebrow">Get it on</span>
+				<span class="store-name">Google Play</span>
+			</a>
+		</div>
+		<p class="muted">
+			Questions or feedback? Email <a href="mailto:support@brewtuner.app">support@brewtuner.app</a>
+			or read the <a href="/support">support page</a>.
 		</p>
 	</div>
 </section>
@@ -175,11 +171,17 @@
 	.hero {
 		background: linear-gradient(180deg, var(--color-surface-alt) 0%, var(--color-bg) 100%);
 		padding: 4rem 0 3rem 0;
-		text-align: center;
 	}
 
 	.hero-inner {
-		max-width: 50rem;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 3rem;
+	}
+
+	.hero-copy {
+		max-width: 34rem;
 	}
 
 	.eyebrow {
@@ -191,19 +193,28 @@
 		margin-bottom: 0.5rem;
 	}
 
+	.hero h1 {
+		font-size: clamp(2.25rem, 6vw, 3.5rem);
+		margin-bottom: 0;
+	}
+
 	.lede {
 		font-size: 1.15rem;
 		color: var(--color-text-secondary);
-		max-width: 36rem;
-		margin: 1rem auto 2rem auto;
+		margin: 1rem 0 0 0;
 	}
 
 	.badges {
 		display: flex;
 		gap: 1rem;
-		justify-content: center;
 		flex-wrap: wrap;
-		margin: 1.5rem 0 0.5rem 0;
+		margin: 2rem 0 0 0;
+	}
+
+	.hero-note {
+		margin: 1rem 0 0 0;
+		font-size: 0.9rem;
+		color: var(--color-text-secondary);
 	}
 
 	.store-badge {
@@ -218,7 +229,9 @@
 		color: var(--color-bg);
 		border-radius: var(--radius-md);
 		text-decoration: none;
-		transition: transform var(--transition), background-color var(--transition);
+		transition:
+			transform var(--transition),
+			background-color var(--transition);
 	}
 
 	.store-badge:hover {
@@ -241,128 +254,125 @@
 		font-size: 1.15rem;
 	}
 
-	.coming-soon {
-		margin-top: 1rem;
-	}
-
-	.section {
-		padding: 1.5rem 0;
-	}
-
-	.features {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-		gap: 1rem;
-		margin-top: 1rem;
-	}
-
-	.feature {
-		background: var(--color-surface);
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-md);
-		padding: 1.25rem;
-	}
-
-	.feature h3 {
-		margin-top: 0;
-		font-size: 1.05rem;
-		color: var(--color-accent);
-	}
-
-	.feature p {
+	/* Screenshot in a simple device bezel. */
+	.phone {
 		margin: 0;
-		color: var(--color-text-secondary);
-		font-size: 0.95rem;
-	}
-
-	.callout {
-		background: var(--color-surface);
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-lg);
-		padding: 2rem;
-		max-width: 42rem;
-		margin: 0 auto;
-		box-shadow: var(--shadow-sm);
-	}
-
-	.callout h2 {
-		margin-top: 0;
-		color: var(--color-accent);
-	}
-
-	.screenshots-section h2 {
-		text-align: center;
-		margin-bottom: 2rem;
-	}
-
-	.hero-shot {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 1rem;
-		margin: 0 0 3rem 0;
-	}
-
-	.hero-shot img {
-		width: auto;
-		max-width: min(20rem, 100%);
-		height: auto;
-		border-radius: var(--radius-lg);
-		box-shadow: var(--shadow-md);
-		display: block;
-	}
-
-	.hero-shot figcaption {
-		max-width: 32rem;
-		text-align: center;
-		font-size: 0.95rem;
-		color: var(--color-text-secondary);
-		line-height: 1.55;
-	}
-
-	.screenshots {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-		gap: 2rem 1.5rem;
-		margin-top: 1rem;
-	}
-
-	.screenshot {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.75rem;
-		margin: 0;
-	}
-
-	.screenshot img {
-		width: auto;
+		width: 18rem;
 		max-width: 100%;
-		max-height: 26rem;
-		height: auto;
-		border-radius: var(--radius-md);
-		box-shadow: var(--shadow-sm);
+		padding: 0.4rem;
+		background: #14100e;
+		border-radius: 2.1rem;
+		box-shadow: var(--shadow-md);
+		justify-self: center;
+	}
+
+	.phone img {
 		display: block;
+		width: 100%;
+		height: auto;
+		border-radius: 1.75rem;
 	}
 
-	.screenshot figcaption {
-		font-size: 0.875rem;
+	.hero-phone {
+		width: 20rem;
+	}
+
+	.pillars {
+		padding-top: 1rem;
+	}
+
+	.pillar {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 3rem 4rem;
+		padding: 3.5rem 0;
+	}
+
+	.pillar + .pillar {
+		border-top: 1px solid var(--color-border);
+	}
+
+	.pillar:nth-child(even) .phone {
+		order: -1;
+	}
+
+	.pillar-copy {
+		max-width: 32rem;
+	}
+
+	.pillar:nth-child(even) .pillar-copy {
+		justify-self: end;
+	}
+
+	.pillar h2 {
+		margin-top: 0;
+	}
+
+	.pillar p,
+	.pillar li {
 		color: var(--color-text-secondary);
-		text-align: center;
-		line-height: 1.5;
 	}
 
-	.screenshots-note {
-		text-align: center;
-		margin-top: 1rem;
+	.pillar ul {
+		list-style: none;
+		padding: 0;
+		margin: 1.25rem 0 0 0;
+	}
+
+	.pillar li {
+		padding: 0.75rem 0;
+		margin: 0;
+		border-top: 1px solid var(--color-border);
+		font-size: 0.95rem;
 	}
 
 	.cta {
 		text-align: center;
-		padding: 2rem 1rem;
+		padding: 3rem 0 1rem 0;
+		border-top: 1px solid var(--color-border);
 	}
 
 	.cta h2 {
 		margin-top: 0;
+	}
+
+	.cta .badges {
+		justify-content: center;
+		margin: 1.5rem 0;
+	}
+
+	@media (max-width: 760px) {
+		.hero {
+			padding: 2.5rem 0 2rem 0;
+		}
+
+		.hero-inner,
+		.pillar {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 2rem;
+		}
+
+		.hero-copy,
+		.pillar-copy {
+			max-width: none;
+		}
+
+		.pillar {
+			padding: 2.5rem 0;
+		}
+
+		.pillar:nth-child(even) .phone {
+			order: 0;
+		}
+
+		.pillar:nth-child(even) .pillar-copy {
+			justify-self: stretch;
+		}
+
+		.phone,
+		.hero-phone {
+			width: min(17rem, 78vw);
+		}
 	}
 </style>

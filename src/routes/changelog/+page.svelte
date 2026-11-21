@@ -8,6 +8,28 @@
 	<p class="muted">Release notes for Brew Tuner, newest first.</p>
 
 	<section class="release">
+		<h2>v1.1.0 — <span class="muted">coming soon</span></h2>
+		<p class="muted release-date">Submitted for review · TBD 2026</p>
+		<ul>
+			<li>
+				<strong>Repeat last brew</strong> — a one-tap shortcut on the home screen jumps straight
+				into duplicating your most recent brew. Skip the menus when you're chasing the same
+				recipe.
+			</li>
+			<li>
+				<strong>Bean cost tracking</strong> — record a bag's size and price, and Brew Tuner shows
+				you cost per gram, cost per cup, and the cost of every brew you log. Fields are optional;
+				skip them if you don't care.
+			</li>
+			<li>
+				<strong>Smarter dose-and-yield helper</strong> — enter a yield and the brew screen
+				suggests the matching dose. Enter a dose, get the yield. Uses the ratio you've set per
+				brew method.
+			</li>
+		</ul>
+	</section>
+
+	<section class="release">
 		<h2>v1.0.0</h2>
 		<p class="muted release-date">Initial release · May 22, 2026</p>
 		<p>The first public release of Brew Tuner. Core dial-in loop, no accounts, no servers.</p>

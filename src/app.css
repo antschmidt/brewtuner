@@ -5,12 +5,12 @@
 	--color-surface: #ffffff;
 	--color-surface-alt: #f1ece6;
 	--color-primary: #2a2421;
-	--color-accent: #a57e65;
-	--color-accent-hover: #8d6a55;
+	--color-accent: #8d6a55;
+	--color-accent-hover: #765746;
 	--color-text-primary: #2a2421;
 	--color-text-secondary: #6c645e;
 	--color-border: #e6ddd4;
-	--color-link: #8d6a55;
+	--color-link: #86634f;
 	--max-width: 64rem;
 	--radius-sm: 4px;
 	--radius-md: 8px;
@@ -139,6 +139,7 @@ code {
 .prose {
 	max-width: 42rem;
 	margin: 0 auto;
+	padding-top: 2rem;
 }
 
 .prose h2,
