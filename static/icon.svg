@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Brew Tuner app icon.
+       Stylized coffee bean inside a soft circle. Tested down to 48px:
+       the dark brown center groove + cream halo remain readable. -->
+
+  <!-- Background: deep espresso brown gradient. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#5e3c20"/>
+      <stop offset="100%" stop-color="#3b2412"/>
+    </radialGradient>
+    <linearGradient id="bean" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0e6d8"/>
+      <stop offset="60%" stop-color="#e9c896"/>
+      <stop offset="100%" stop-color="#c9a677"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- Bean body. Tilted ~25° so the groove flows diagonally. -->
+  <g transform="translate(512 512) rotate(-22)">
+    <!-- Outer bean shape -->
+    <ellipse cx="0" cy="0" rx="290" ry="380" fill="url(#bean)"/>
+
+    <!-- Groove down the center -->
+    <path d="
+      M 0 -340
+      C 80 -260, 80 -120, 30 0
+      C -10 110, 60 240, 0 340
+      C -55 240, 5 110, -35 0
+      C -85 -120, -85 -260, 0 -340
+      Z" fill="#3b2412" opacity="0.35"/>
+
+    <!-- Sharper inner groove highlight for definition at small sizes -->
+    <path d="
+      M 0 -300
+      C 50 -220, 50 -100, 5 0
+      C -35 100, 35 220, 0 300
+      C -25 220, -10 100, -45 0
+      C -50 -100, -50 -220, 0 -300
+      Z" fill="#3b2412" opacity="0.55"/>
+  </g>
+</svg>
