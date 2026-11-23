@@ -3,28 +3,42 @@
 	import { page } from '$app/stores';
 
 	const nav = [
-		{ href: '/', label: 'Home' },
 		{ href: '/support', label: 'Support' },
 		{ href: '/privacy', label: 'Privacy' },
 		{ href: '/changelog', label: 'Changelog' }
 	];
 
+	const SITE = 'https://brewtuner.app';
+
 	$: pathname = $page.url.pathname;
+	$: canonical = SITE + (pathname === '/' ? '/' : pathname);
 	function isActive(href: string) {
 		if (href === '/') return pathname === '/';
 		return pathname === href || pathname.startsWith(href + '/');
 	}
 </script>
 
+<svelte:head>
+	<link rel="canonical" href={canonical} />
+	<meta property="og:site_name" content="Brew Tuner" />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content={canonical} />
+	<meta property="og:image" content="{SITE}/og.png" />
+	<meta property="og:image:width" content="1024" />
+	<meta property="og:image:height" content="500" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:image" content="{SITE}/og.png" />
+</svelte:head>
+
 <header class="site-header">
 	<div class="container header-inner">
 		<a class="brand" href="/" aria-label="Brew Tuner home">
-			<span class="brand-mark" aria-hidden="true">☕</span>
+			<img class="brand-mark" src="/icon.svg" alt="" width="28" height="28" />
 			<span class="brand-name">Brew Tuner</span>
 		</a>
 		<nav aria-label="Primary">
 			{#each nav as item}
-				<a href={item.href} class:active={isActive(item.href)}>{item.label}</a>
+				<a href={item.href} class:active={isActive(item.href)} class:hide-sm={item.href === '/changelog'}>{item.label}</a>
 			{/each}
 		</nav>
 	</div>
@@ -39,6 +53,10 @@
 		<p class="muted">
 			Brew Tuner — a coffee dial-in app for iOS &amp; Android.<br />
 			Made by <a href="https://tonyschmidt.io">Tony Schmidt</a>. Contact: <a href="mailto:support@brewtuner.app">support@brewtuner.app</a>.
+		</p>
+		<p class="muted footer-links">
+			<a href="/support">Support</a> · <a href="/privacy">Privacy</a> ·
+			<a href="/changelog">Changelog</a>
 		</p>
 		<p class="muted">© {new Date().getFullYear()} Tony Schmidt. All rights reserved.</p>
 	</div>
@@ -61,7 +79,6 @@
 		padding-top: 0.85rem;
 		padding-bottom: 0.85rem;
 		gap: 1rem;
-		flex-wrap: wrap;
 	}
 
 	.brand {
@@ -73,6 +90,8 @@
 		font-family: var(--font-serif);
 		font-weight: 700;
 		font-size: 1.15rem;
+		white-space: nowrap;
+		flex-shrink: 0;
 	}
 
 	.brand:hover {
@@ -81,13 +100,15 @@
 	}
 
 	.brand-mark {
-		font-size: 1.25rem;
+		width: 1.75rem;
+		height: 1.75rem;
+		border-radius: 22%;
+		display: block;
 	}
 
 	nav {
 		display: flex;
 		gap: 0.25rem;
-		flex-wrap: wrap;
 	}
 
 	nav a {
@@ -95,6 +116,7 @@
 		border-radius: var(--radius-sm);
 		font-size: 0.95rem;
 		color: var(--color-text-secondary);
+		white-space: nowrap;
 		transition: background-color var(--transition), color var(--transition);
 	}
 
@@ -111,7 +133,7 @@
 
 	main {
 		min-height: calc(100vh - 12rem);
-		padding: 2rem 0 4rem 0;
+		padding: 0 0 4rem 0;
 	}
 
 	.site-footer {
@@ -131,16 +153,24 @@
 	}
 
 	@media (max-width: 480px) {
+		.site-header {
+			position: static;
+		}
 		.header-inner {
-			flex-direction: column;
-			align-items: flex-start;
 			gap: 0.5rem;
 		}
+		.brand {
+			font-size: 1.05rem;
+		}
 		nav {
-			width: 100%;
+			gap: 0;
 		}
 		nav a {
-			padding: 0.4rem 0.6rem;
+			padding: 0.4rem 0.5rem;
+			font-size: 0.9rem;
+		}
+		nav a.hide-sm {
+			display: none;
 		}
 	}
 </style>

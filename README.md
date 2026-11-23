@@ -2,7 +2,7 @@
 
 The marketing and support site for the [Brew Tuner](https://github.com/antschmidt/brewtuner) coffee dial-in app (iOS + Android).
 
-Live at: _coming soon_
+Live at: <https://brewtuner.app>
 
 ## Stack
 
