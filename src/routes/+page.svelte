@@ -1,9 +1,14 @@
 <script lang="ts">
 	const APP_STORE = 'https://apps.apple.com/us/app/brew-tuner/id6771189315';
-	const PLAY_STORE = 'https://play.google.com/store/apps/details?id=app.brewtuner.brewtuner';
+	// The Android app (package app.brewtuner.brewtuner) has no public Google Play
+	// listing yet, so a link there opens Google's "Not Found" page. Until it does,
+	// the badge says so and is not a link. When the listing is public, set this to
+	// 'https://play.google.com/store/apps/details?id=app.brewtuner.brewtuner'.
+	const PLAY_STORE: string | null = null;
+	const PRICE = '$1.99';
 	const title = 'Brew Tuner — your brew-by-brew dial-in log';
 	const description =
-		'Brew Tuner is a coffee dial-in companion for iOS and Android. Track beans, grinders, and brew methods. Log every brew. Chase the sweet spot one variable at a time.';
+		'Brew Tuner is a coffee dial-in companion for iPhone and iPad, with Android on the way. Track beans, grinders, and brew methods. Log every brew. Chase the sweet spot one variable at a time.';
 </script>
 
 <svelte:head>
@@ -13,10 +18,26 @@
 	<meta property="og:description" content={description} />
 </svelte:head>
 
+{#snippet playBadge()}
+	{#if PLAY_STORE}
+		<a class="store-badge" href={PLAY_STORE} aria-label="Get it on Google Play">
+			<span class="store-eyebrow">Get it on</span>
+			<span class="store-name">Google Play</span>
+		</a>
+	{:else}
+		<span class="store-badge store-badge--soon">
+			<span class="store-eyebrow">Coming soon to</span>
+			<span class="store-name">Google Play</span>
+		</span>
+	{/if}
+{/snippet}
+
 <section class="hero">
 	<div class="container hero-inner">
 		<div class="hero-copy">
-			<p class="eyebrow">Brew-by-brew dial-in log · iOS &amp; Android</p>
+			<p class="eyebrow">
+				Brew-by-brew dial-in log · {PLAY_STORE ? 'iOS & Android' : 'iPhone & iPad'}
+			</p>
 			<h1>Stop guessing your grind.</h1>
 			<p class="lede">
 				Log every brew — grind setting, dose, yield, time, rating — then change one variable and
@@ -28,12 +49,12 @@
 					<span class="store-eyebrow">Download on the</span>
 					<span class="store-name">App Store</span>
 				</a>
-				<a class="store-badge" href={PLAY_STORE} aria-label="Get it on Google Play">
-					<span class="store-eyebrow">Get it on</span>
-					<span class="store-name">Google Play</span>
-				</a>
+				{@render playBadge()}
 			</div>
-			<p class="hero-note">No accounts. No ads. No tracking. Works fully offline.</p>
+			<p class="hero-note">
+				<strong>{PRICE} on the App Store.</strong> Pay once. No accounts. No ads. No tracking. Works
+				fully offline.
+			</p>
 		</div>
 
 		<figure class="phone hero-phone">
@@ -155,11 +176,9 @@
 				<span class="store-eyebrow">Download on the</span>
 				<span class="store-name">App Store</span>
 			</a>
-			<a class="store-badge" href={PLAY_STORE} aria-label="Get it on Google Play">
-				<span class="store-eyebrow">Get it on</span>
-				<span class="store-name">Google Play</span>
-			</a>
+			{@render playBadge()}
 		</div>
+		<p class="cta-price">{PRICE} on the App Store. Pay once.</p>
 		<p class="muted">
 			Questions or feedback? Email <a href="mailto:support@brewtuner.app">support@brewtuner.app</a>
 			or read the <a href="/support">support page</a>.
@@ -239,6 +258,29 @@
 		background: var(--color-accent);
 		transform: translateY(-1px);
 		color: var(--color-bg);
+	}
+
+	/* Not out yet: reads as a badge, but plainly is not a button. */
+	.store-badge--soon {
+		background: transparent;
+		color: var(--color-text-secondary);
+		border: 1px dashed var(--color-border);
+		cursor: default;
+	}
+
+	.store-badge--soon:hover {
+		background: transparent;
+		color: var(--color-text-secondary);
+		transform: none;
+	}
+
+	.hero-note strong {
+		color: var(--color-text-primary);
+	}
+
+	.cta-price {
+		margin: 0 0 1rem 0;
+		font-weight: 600;
 	}
 
 	.store-eyebrow {
